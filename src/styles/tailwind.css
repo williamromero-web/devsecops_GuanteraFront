@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "San Francisco", "Segoe UI", sans-serif;
+
+  --color-primary: #2563eb;
+  --color-primary-foreground: #eff6ff;
+
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f9fafb;
+  --color-border-subtle: #e5e7eb;
+}
+
+

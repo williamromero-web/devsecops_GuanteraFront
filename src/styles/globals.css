@@ -1,0 +1,19 @@
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: radial-gradient(
+    circle at top,
+    #e5edff 0,
+    #f9fafb 45%,
+    #ffffff 100%
+  );
+  color: #020617;
+}
+
+
