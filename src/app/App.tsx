@@ -1,5 +1,9 @@
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { BrowserRouter } from "react-router-dom";
+import { AppRoutes } from "./routes/AppRoutes";
 
+// Fase 0: theme mínimo. Fase 1: en standalone usaremos palette(server, darkMode) desde shared/theme.
+// Embebido en TraccarWeb: no usar ThemeProvider; el host lo provee. Flag: VITE_STANDALONE.
 const theme = createTheme({
   palette: {
     mode: "light",
@@ -24,9 +28,9 @@ export function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className="min-h-screen bg-[--color-surface] text-slate-900 flex items-center justify-center">
-        <h1 className="text-4xl font-bold">Hola mundo</h1>
-      </div>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
