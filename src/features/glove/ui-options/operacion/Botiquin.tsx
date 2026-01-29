@@ -1,4 +1,14 @@
-import { Alert, Box, Button, Paper, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  FormControlLabel,
+  Grid,
+  Paper,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -6,28 +16,29 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useState } from "react";
-import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 
-export interface GuiaControlMantenimientoProps {
+export interface BotiquinProps {
   plate: string;
 }
 
-export function GuiaControlMantenimiento({
-  plate,
-}: Readonly<GuiaControlMantenimientoProps>) {
+export function Botiquin({ plate }: Readonly<BotiquinProps>) {
   const theme = useTheme();
-  const [documentsExpanded, setDocumentsExpanded] = useState(true);
+  const [infoExpanded, setInfoExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [hasFile, setHasFile] = useState(false);
-  const [fileName, setFileName] = useState("Sin archivo");
-  const [fileSizeLabel, setFileSizeLabel] = useState("0 KB");
+  const [botiquinPresente, setBotiquinPresente] = useState(true);
+  const [fechaVencimiento, setFechaVencimiento] = useState("2025-12-31");
+
+  const currentBotiquinPresente = botiquinPresente;
+  const currentFechaVencimiento = fechaVencimiento;
 
   const handleCancel = () => {
     setIsEditing(false);
+    setBotiquinPresente(currentBotiquinPresente);
+    setFechaVencimiento(currentFechaVencimiento);
     setError(null);
     setMessage(null);
   };
@@ -39,14 +50,7 @@ export function GuiaControlMantenimiento({
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSaving(false);
     setIsEditing(false);
-    setMessage("Archivo guardado correctamente (mock).");
-  };
-
-  const handleSaveDocument = async (file: File) => {
-    setHasFile(true);
-    setFileName(file.name);
-    setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-    setMessage("Archivo guardado correctamente (mock).");
+    setMessage("Información del botiquín guardada correctamente (mock).");
   };
 
   return (
@@ -62,7 +66,6 @@ export function GuiaControlMantenimiento({
         </Alert>
       ) : null}
 
-      {/* Sección: Adjuntar guía */}
       <Paper
         sx={{
           p: 2,
@@ -72,12 +75,12 @@ export function GuiaControlMantenimiento({
         }}
       >
         <Box
-          onClick={() => setDocumentsExpanded(!documentsExpanded)}
+          onClick={() => setInfoExpanded(!infoExpanded)}
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            mb: documentsExpanded ? 2 : 0,
+            mb: infoExpanded ? 2 : 0,
             cursor: "pointer",
           }}
         >
@@ -88,9 +91,9 @@ export function GuiaControlMantenimiento({
               color: theme.palette.text.primary,
             }}
           >
-            Adjuntar guía de control de mantenimiento
+            Información del botiquín
           </Typography>
-          {documentsExpanded ? (
+          {infoExpanded ? (
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
@@ -107,22 +110,54 @@ export function GuiaControlMantenimiento({
           )}
         </Box>
 
-        {documentsExpanded && (
-          <DocumentUploadCard
-            instruction={`Adjunte aquí la guía de control de mantenimiento del vehículo (Placa: ${plate}).`}
-            hasFile={hasFile}
-            fileName={fileName}
-            fileSizeLabel={fileSizeLabel}
-            onView={() =>
-              setMessage(
-                "Vista previa (mock): aquí se abriría la guía desde la API.",
-              )
-            }
-            onSave={handleSaveDocument}
-          />
+        {infoExpanded && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={botiquinPresente}
+                  onChange={(e) => setBotiquinPresente(e.target.checked)}
+                  disabled={!isEditing}
+                />
+              }
+              label={
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  Botiquín presente
+                </Typography>
+              }
+            />
+            {botiquinPresente && (
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Fecha de vencimiento"
+                    type="date"
+                    value={fechaVencimiento}
+                    onChange={(e) => setFechaVencimiento(e.target.value)}
+                    disabled={!isEditing}
+                    variant="outlined"
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </Box>
         )}
       </Paper>
-
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
         {isEditing && (
           <Button

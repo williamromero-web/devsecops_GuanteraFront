@@ -24,14 +24,6 @@ export interface RevisionTecnicoMecanicaProps {
   plate: string;
 }
 
-/**
- * Revisión técnico-mecánica – Fase 8 maquetado (datos mock).
- * Incluye:
- * - Título con estado (VIGENTE/PRÓXIMO A VENCER/VENCIDO).
- * - Sección expandible de información (Fechas - solo lectura).
- * - Sección expandible de documentos (DocumentUploadCard).
- * - Botones Editar/Guardar/Cancelar.
- */
 export function RevisionTecnicoMecanica({
   plate,
 }: Readonly<RevisionTecnicoMecanicaProps>) {
@@ -43,8 +35,7 @@ export function RevisionTecnicoMecanica({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock data (Fase 8 quemado)
-  const statusType = "OK"; // "OK" | "PRÓXIMO A VENCER" | "VENCIDO"
+  const statusType = "OK";
   const fechaUltimaRevision = "15/01/2024";
   const fechaVencimiento = "15/01/2025";
   const [hasFile, setHasFile] = useState(true);
@@ -82,7 +73,8 @@ export function RevisionTecnicoMecanica({
     }
     return {
       title: "REVISIÓN TÉCNICO-MECÁNICA",
-      message: "Información de la Revisión Tecnicomecánica del vehículo seleccionado:",
+      message:
+        "Información de la Revisión Tecnicomecánica del vehículo seleccionado:",
       chip: null,
     };
   };
@@ -177,7 +169,6 @@ export function RevisionTecnicoMecanica({
           )}
         </Box>
 
-        {/* Sección: Información RTM */}
         <Box
           onClick={() => setInfoExpanded(!infoExpanded)}
           sx={{
