@@ -1,10 +1,14 @@
-/**
- * Formulario de una opción (ej. SOAT, Tarjeta de propiedad).
- * Placeholder para Fase 0; maquetado en Fase 6, ui-options en Fase 7–8.
- */
-
-import { Box, Typography } from "@mui/material";
-import { useParams, Link as RouterLink } from "react-router-dom";
+import { Box, Paper, Typography } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import { GloveLayout, PageHeader, VehicleInfoSection } from "../components";
+import {
+  findOption,
+  MODULE_LABELS,
+  type ModuleKey,
+} from "../config/optionsConfig";
+import { getAggregatedStatus, getVehicleStatus } from "../lib/status";
+import { useVehicle } from "../hooks/useVehicle";
+import { getOptionComponent } from "../ui-options";
 
 export function GuanteraOptionPage() {
   const { plate, module, option } = useParams<{
@@ -12,22 +16,64 @@ export function GuanteraOptionPage() {
     module: string;
     option: string;
   }>();
+  const navigate = useNavigate();
+
+  const moduleKey = (module as ModuleKey) || "propiedad";
+  const moduleLabel = MODULE_LABELS[moduleKey] ?? "Módulo";
+  const optionItem = findOption(moduleKey, option ?? "") ?? null;
+  const optionLabel = optionItem?.label ?? option ?? "Opción";
+
+  const { vehicle } = useVehicle(plate);
+  const isActive = (() => {
+    if (!vehicle) return true;
+    const agg = getAggregatedStatus(vehicle);
+    return getVehicleStatus(agg) === "activo";
+  })();
+
+  const breadcrumbItems = [
+    { label: "Guantera", to: "/glove" },
+    { label: plate ?? "—", to: "/glove" },
+    { label: moduleLabel, to: `/glove/${plate}/${moduleKey}` },
+    { label: optionLabel },
+  ];
+
+  const OptionComponent = getOptionComponent(moduleKey, option);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" component="h1">
-        Guantera — Opción: {option ?? "—"}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        Placa: {plate ?? "—"} / Módulo: {module ?? "—"}
-      </Typography>
-      <Typography
-        component={RouterLink}
-        to={`/glove/${plate}/${module}`}
-        sx={{ mt: 2, display: "inline-block", color: "primary.main" }}
-      >
-        ← Volver al módulo
-      </Typography>
-    </Box>
+    <GloveLayout>
+      <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+        <PageHeader
+          title={optionLabel}
+          onBack={() => navigate(`/glove/${plate}/${moduleKey}`)}
+          breadcrumbItems={breadcrumbItems}
+        />
+
+        <VehicleInfoSection plate={plate ?? "—"} isActive={isActive} />
+
+        {OptionComponent ? (
+          <OptionComponent plate={plate ?? ""} />
+        ) : (
+          <Paper
+            sx={{
+              p: 3,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              border: (t) => `1px solid ${t.palette.border.main}`,
+            }}
+          >
+            <Typography sx={{ color: "text.secondary", mb: 1 }}>
+              {" "}
+              <Box component="span" sx={{ fontWeight: 700 }}>
+                {optionLabel}
+              </Box>{" "}
+            </Typography>
+            <Typography sx={{ color: "text.tertiary" }}>
+              aquí se renderizará el componente, por ejemplo: SOAT, Póliza de
+              seguro, Revisión técnico-mecánica, etc.
+            </Typography>
+          </Paper>
+        )}
+      </Box>
+    </GloveLayout>
   );
 }

@@ -1,29 +1,74 @@
-/**
- * Detalle de módulo por placa (Propiedad, Seguros, Mantenimiento, Operación).
- * Placeholder para Fase 0; maquetado en Fase 6.
- */
-
-import { Box, Typography } from "@mui/material";
-import { useParams, Link as RouterLink } from "react-router-dom";
+import { Box } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  GloveLayout,
+  OptionsGrid,
+  PageHeader,
+  VehicleInfoSection,
+} from "../components";
+import {
+  MODULE_LABELS,
+  type ModuleKey,
+  OPTIONS_CONFIG,
+} from "../config/optionsConfig";
+import { getAggregatedStatus, getVehicleStatus } from "../lib/status";
+import { useVehicle } from "../hooks/useVehicle";
+import { ModuleIcon } from "../../../shared/ui/atoms/ModuleIcon";
 
 export function GuanteraDetailPage() {
   const { plate, module } = useParams<{ plate: string; module: string }>();
+  const navigate = useNavigate();
+
+  const moduleKey = (module as ModuleKey) || "propiedad";
+  const moduleLabel = MODULE_LABELS[moduleKey] ?? "Módulo";
+
+  const { vehicle } = useVehicle(plate);
+  const isActive = (() => {
+    if (!vehicle) return true;
+    const agg = getAggregatedStatus(vehicle);
+    return getVehicleStatus(agg) === "activo";
+  })();
+
+  const breadcrumbItems = [
+    { label: "", to: "/glove" },
+    { label: plate ?? "—", to: "/glove" },
+    { label: moduleLabel },
+  ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" component="h1">
-        Guantera — Módulo: {module ?? "—"}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        Placa: {plate ?? "—"}
-      </Typography>
-      <Typography
-        component={RouterLink}
-        to="/glove"
-        sx={{ mt: 2, display: "inline-block", color: "primary.main" }}
-      >
-        ← Volver al listado
-      </Typography>
-    </Box>
+    <GloveLayout>
+      <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+        <PageHeader
+          title={moduleLabel}
+          onBack={() => navigate("/glove")}
+          breadcrumbItems={breadcrumbItems}
+          trailing={
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 3,
+                bgcolor: "surface.alt",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ModuleIcon variant={moduleKey} size={26} />
+            </Box>
+          }
+        />
+
+        <VehicleInfoSection plate={plate ?? "—"} isActive={isActive} />
+
+        <OptionsGrid
+          options={OPTIONS_CONFIG[moduleKey] ?? []}
+          vehicle={vehicle}
+          onSelect={(optionKey) =>
+            navigate(`/glove/${plate}/${moduleKey}/${optionKey}`)
+          }
+        />
+      </Box>
+    </GloveLayout>
   );
 }
