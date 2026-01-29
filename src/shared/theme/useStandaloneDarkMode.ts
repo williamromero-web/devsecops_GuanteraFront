@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 
 function readStoredMode(): boolean | null {
+  try {
+    const params = new URLSearchParams(globalThis.location?.search ?? "");
+    const mode = params.get("mode");
+    if (mode === "dark") return true;
+    if (mode === "light") return false;
+  } catch {}
+
   const stored = localStorage.getItem("uiDarkMode");
   if (stored === "dark") return true;
   if (stored === "light") return false;
