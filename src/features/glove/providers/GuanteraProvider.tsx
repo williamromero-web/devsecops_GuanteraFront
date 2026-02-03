@@ -1,4 +1,10 @@
 import { createContext, useContext, useMemo } from "react";
+import type { FetchDevicesFunction } from "../types/devices";
+
+export interface DevicesApiConfig {
+  defaultPageSize?: number;
+  searchParamName?: string;
+}
 
 export interface GuanteraConfig {
   /**
@@ -16,12 +22,23 @@ export interface GuanteraConfig {
    * Fase 8 (quemado): devuelve objeto vacío.
    */
   getAuthHeaders: () => Record<string, string>;
+  /**
+   * Función inyectada por el host (TraccarWeb) para obtener dispositivos paginados.
+   * Si no se proporciona, Glove usa datos mock (modo standalone).
+   */
+  fetchDevices: FetchDevicesFunction | null;
+  /**
+   * Configuración de la API de dispositivos (paginación y nombre del parámetro de búsqueda).
+   */
+  devicesApiConfig: DevicesApiConfig | null;
 }
 
 const DEFAULT_CONFIG: GuanteraConfig = {
   userId: "mock-user",
   baseUrl: null,
   getAuthHeaders: () => ({}),
+  fetchDevices: null,
+  devicesApiConfig: null,
 };
 
 const GuanteraContext = createContext<GuanteraConfig>(DEFAULT_CONFIG);
@@ -45,8 +62,16 @@ export function GuanteraProvider({
       userId: value?.userId ?? DEFAULT_CONFIG.userId,
       baseUrl: value?.baseUrl ?? DEFAULT_CONFIG.baseUrl,
       getAuthHeaders: value?.getAuthHeaders ?? DEFAULT_CONFIG.getAuthHeaders,
+      fetchDevices: value?.fetchDevices ?? DEFAULT_CONFIG.fetchDevices,
+      devicesApiConfig: value?.devicesApiConfig ?? DEFAULT_CONFIG.devicesApiConfig,
     }),
-    [value?.userId, value?.baseUrl, value?.getAuthHeaders],
+    [
+      value?.userId,
+      value?.baseUrl,
+      value?.getAuthHeaders,
+      value?.fetchDevices,
+      value?.devicesApiConfig,
+    ],
   );
 
   return (

@@ -27,13 +27,21 @@ export function getStatusConfig(theme: Theme) {
 }
 
 export function getOptionCardConfig(theme: Theme, status: NormalizedStatus) {
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   if (status === "warning") {
     return {
       dotColor: theme.palette.warning.main,
       border: theme.palette.warning.main,
       bg: theme.palette.warning.light,
       iconColor: theme.palette.warning.main,
-      iconBg: theme.palette.surface.alt,
+      iconBg: surfaceAlt,
     } as const;
   }
 
@@ -43,15 +51,15 @@ export function getOptionCardConfig(theme: Theme, status: NormalizedStatus) {
       border: theme.palette.error.main,
       bg: theme.palette.error.light,
       iconColor: theme.palette.error.main,
-      iconBg: theme.palette.surface.alt,
+      iconBg: surfaceAlt,
     } as const;
   }
 
   return {
     dotColor: theme.palette.primary.light,
-    border: theme.palette.border.main,
+    border: borderColor,
     bg: theme.palette.background.paper,
     iconColor: theme.palette.primary.light,
-    iconBg: theme.palette.surface.alt,
+    iconBg: surfaceAlt,
   } as const;
 }

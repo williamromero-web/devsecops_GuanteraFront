@@ -1,4 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "react-router-dom";
 import { GloveLayout, PageHeader, VehicleInfoSection } from "../components";
 import {
@@ -17,6 +18,7 @@ export function GuanteraOptionPage() {
     option: string;
   }>();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const moduleKey = (module as ModuleKey) || "propiedad";
   const moduleLabel = MODULE_LABELS[moduleKey] ?? "Módulo";
@@ -58,7 +60,10 @@ export function GuanteraOptionPage() {
               p: 3,
               bgcolor: "background.paper",
               borderRadius: 2,
-              border: (t) => `1px solid ${t.palette.border.main}`,
+              border: `1px solid ${
+                (theme.palette as { border?: { main?: string } })?.border
+                  ?.main ?? theme.palette.divider ?? "#D0D0D0"
+              }`,
             }}
           >
             <Typography sx={{ color: "text.secondary", mb: 1 }}>

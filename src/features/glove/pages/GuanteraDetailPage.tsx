@@ -48,7 +48,11 @@ export function GuanteraDetailPage() {
                 width: 48,
                 height: 48,
                 borderRadius: 3,
-                bgcolor: "surface.alt",
+                bgcolor: (t) =>
+                  ((t.palette as { surface?: { alt?: string } })?.surface
+                    ?.alt ??
+                    t.palette.background.paper ??
+                    t.palette.background.default),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

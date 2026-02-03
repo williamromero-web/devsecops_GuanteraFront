@@ -1,4 +1,4 @@
-import { Alert, Box, Grid, Paper, TextField, Typography } from "@mui/material";
+import { Box, Grid, Paper, TextField, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -8,10 +8,15 @@ export interface ImpuestoVehicularProps {
   plate: string;
 }
 
-export function ImpuestoVehicular({ plate }: Readonly<ImpuestoVehicularProps>) {
+export function ImpuestoVehicular({
+  plate: _plate,
+}: Readonly<ImpuestoVehicularProps>) {
   const theme = useTheme();
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
   const [optionInfoExpanded, setOptionInfoExpanded] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
 
   const ciudadMatricula = "Bogotá D.C.";
   const fechaLimitePagoDescuento = "15/03/2025";
@@ -23,18 +28,13 @@ export function ImpuestoVehicular({ plate }: Readonly<ImpuestoVehicularProps>) {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {message ? (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {message}
-        </Alert>
-      ) : null}
 
       <Paper
         sx={{
           p: 2,
           bgcolor: theme.palette.background.paper,
           borderRadius: 2,
-          border: `1px solid ${theme.palette.border.main}`,
+          border: `1px solid ${borderColor}`,
         }}
       >
         <Box

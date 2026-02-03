@@ -10,13 +10,18 @@ export interface DisclaimerBannerProps {
 export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBannerProps>) {
   const theme = useTheme();
 
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+
   return (
     <Paper
       sx={{
         p: 2,
         bgcolor: theme.palette.background.paper,
         borderRadius: 2,
-        border: `1px solid ${theme.palette.border.main}`,
+        border: `1px solid ${borderColor}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

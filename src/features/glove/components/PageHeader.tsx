@@ -21,13 +21,18 @@ export function PageHeader({
 }: Readonly<PageHeaderProps>) {
   const theme = useTheme();
 
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+
   return (
     <Paper
       sx={{
         p: 3,
         bgcolor: theme.palette.background.paper,
         borderRadius: 2,
-        border: `1px solid ${theme.palette.border.main}`,
+        border: `1px solid ${borderColor}`,
         ...sx,
       }}
     >
@@ -46,15 +51,15 @@ export function PageHeader({
               onClick={onBack}
               sx={{
                 bgcolor: theme.palette.background.paper,
-                border: `1px solid ${theme.palette.border.main}`,
+                border: `1px solid ${borderColor}`,
                 borderRadius: 3,
                 color: theme.palette.text.secondary,
                 width: 40,
                 height: 40,
                 p: 1,
                 "&:hover": {
-                  bgcolor: theme.palette.surface.main,
-                  borderColor: theme.palette.border.main,
+                  bgcolor: (theme.palette as { surface?: { main?: string } })?.surface?.main ?? theme.palette.background.paper,
+                  borderColor: borderColor,
                 },
               }}
             >

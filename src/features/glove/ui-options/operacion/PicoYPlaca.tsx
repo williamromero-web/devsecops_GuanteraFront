@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Chip,
   Grid,
@@ -19,10 +18,18 @@ export interface PicoYPlacaProps {
   plate: string;
 }
 
-export function PicoYPlaca({ plate }: Readonly<PicoYPlacaProps>) {
+export function PicoYPlaca({ plate: _plate }: Readonly<PicoYPlacaProps>) {
   const theme = useTheme();
   const [infoExpanded, setInfoExpanded] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
+
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
 
   const ultimoDigito = "8";
   const puedeCircular = true;
@@ -33,18 +40,13 @@ export function PicoYPlaca({ plate }: Readonly<PicoYPlacaProps>) {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {message ? (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {message}
-        </Alert>
-      ) : null}
 
       <Paper
         sx={{
           p: 2,
-          bgcolor: theme.palette.surface.alt,
+          bgcolor: surfaceAlt,
           borderRadius: 2,
-          border: `1px solid ${theme.palette.border.main}`,
+          border: `1px solid ${borderColor}`,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
@@ -75,7 +77,7 @@ export function PicoYPlaca({ plate }: Readonly<PicoYPlacaProps>) {
           p: 2,
           bgcolor: theme.palette.background.paper,
           borderRadius: 2,
-          border: `1px solid ${theme.palette.border.main}`,
+          border: `1px solid ${borderColor}`,
         }}
       >
         <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}>

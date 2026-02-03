@@ -71,13 +71,18 @@ export function VehicleCard({ vehicle, searchTerm = "", onModuleClick, sx }: Rea
   const aggregated = getAggregatedStatus(vehicle);
   const chipVariant = getVehicleStatus(aggregated);
 
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+
   return (
     <Grid size={{ xs: 12, md: 4 }}>
       <Paper
         sx={{
           p: 2.5,
           borderRadius: 2,
-          border: `1px solid ${theme.palette.border.main}`,
+          border: `1px solid ${borderColor}`,
           height: "100%",
           display: "flex",
           flexDirection: "column",

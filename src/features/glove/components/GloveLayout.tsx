@@ -14,6 +14,10 @@ export function GloveLayout({
   sx,
 }: Readonly<GloveLayoutProps>) {
   const theme = useTheme();
+  const alwaysDarkMain =
+    (theme.palette as { alwaysDark?: { main?: string } })?.alwaysDark?.main ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
 
   return (
     <Box
@@ -30,7 +34,7 @@ export function GloveLayout({
           flexShrink: 0,
           bgcolor:
             theme.palette.mode === "dark"
-              ? theme.palette.alwaysDark.main
+              ? alwaysDarkMain
               : theme.palette.background.paper,
           p: 2,
           display: "flex",

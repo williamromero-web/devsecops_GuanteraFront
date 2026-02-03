@@ -21,8 +21,16 @@ export interface BotiquinProps {
   plate: string;
 }
 
-export function Botiquin({ plate }: Readonly<BotiquinProps>) {
+export function Botiquin({ plate: _plate }: Readonly<BotiquinProps>) {
   const theme = useTheme();
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -71,7 +79,7 @@ export function Botiquin({ plate }: Readonly<BotiquinProps>) {
           p: 2,
           bgcolor: theme.palette.background.paper,
           borderRadius: 2,
-          border: `1px solid ${theme.palette.border.main}`,
+          border: `1px solid ${borderColor}`,
         }}
       >
         <Box
@@ -165,7 +173,7 @@ export function Botiquin({ plate }: Readonly<BotiquinProps>) {
             startIcon={<CancelIcon />}
             onClick={handleCancel}
             sx={{
-              borderColor: theme.palette.border.main,
+              borderColor,
               color: theme.palette.text.secondary,
               fontWeight: 600,
               textTransform: "none",
@@ -174,7 +182,7 @@ export function Botiquin({ plate }: Readonly<BotiquinProps>) {
               borderRadius: 2,
               "&:hover": {
                 borderColor: theme.palette.text.secondary,
-                bgcolor: theme.palette.surface.alt,
+                bgcolor: surfaceAlt,
               },
             }}
           >
