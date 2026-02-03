@@ -40,15 +40,18 @@ export default defineConfig({
           version: deps["react-router-dom"],
           singleton: true,
         },
-        "@mui/material": { version: deps["@mui/material"] },
+        "@mui/material": { version: deps["@mui/material"], singleton: true },
         "@mui/icons-material": {
           version: deps["@mui/icons-material"],
+          singleton: true,
         },
         "@emotion/react": {
           version: deps["@emotion/react"],
+          singleton: true,
         },
         "@emotion/styled": {
           version: deps["@emotion/styled"],
+          singleton: true,
         },
       } as any,
     }),
