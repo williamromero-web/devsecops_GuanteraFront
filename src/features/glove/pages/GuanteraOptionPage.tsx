@@ -43,7 +43,7 @@ export function GuanteraOptionPage() {
 
   return (
     <GloveLayout>
-      <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+      <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3, minHeight: 0 }}>
         <PageHeader
           title={optionLabel}
           onBack={() => navigate(`/glove/${plate}/${moduleKey}`)}

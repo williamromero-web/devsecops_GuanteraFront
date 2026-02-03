@@ -25,7 +25,8 @@ export function GloveLayout({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        bgcolor: theme.palette.background.default,
+        width: "100%",
+        bgcolor: "transparent",
         ...sx,
       }}
     >
@@ -40,6 +41,7 @@ export function GloveLayout({
           display: "flex",
           flexDirection: "column",
           gap: 2,
+          borderRadius: theme.palette.mode === "dark" ? 0 : "16px 16px 0 0",
         }}
       >
         <Box
@@ -65,7 +67,17 @@ export function GloveLayout({
         </Box>
       </Box>
 
-      <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>{children}</Box>
+      <Box 
+        sx={{ 
+          flexGrow: 1, 
+          minHeight: 0, 
+          overflow: "auto",
+          bgcolor: theme.palette.mode === "dark" ? "transparent" : theme.palette.background.paper,
+          borderRadius: theme.palette.mode === "dark" ? 0 : "0 0 16px 16px",
+        }}
+      >
+        {children}
+      </Box>
     </Box>
   );
 }

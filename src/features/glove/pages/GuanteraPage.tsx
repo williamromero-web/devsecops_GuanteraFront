@@ -87,7 +87,7 @@ export function GuanteraPage() {
 
   return (
     <GloveLayout headerExtra={headerExtra}>
-      <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+      <Box sx={{ p: 3, pb: 4, display: "flex", flexDirection: "column", gap: 3, minHeight: 0 }}>
         <DisclaimerBanner />
 
         {error && (

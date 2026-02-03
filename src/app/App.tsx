@@ -12,14 +12,8 @@ const STANDALONE = import.meta.env.VITE_STANDALONE !== "false";
 export function App() {
   const darkMode = useStandaloneDarkMode();
 
-  // En modo embebido (TraccarWeb), Glove NO debe inyectar ThemeProvider/CssBaseline.
-  // El host ya provee ThemeProvider y Router.
-  if (!STANDALONE) {
-    return <AppRoutes />;
-  }
-
-  // Standalone: crear theme compatible con TraccarWeb (shape de palette).
-  const theme = createTheme({
+  // Crear tema compatible con TraccarWeb
+  const gloveTheme = createTheme({
     typography: {
       fontFamily: tokens.typography.fontFamily,
     },
@@ -29,8 +23,19 @@ export function App() {
     palette: palette(null, darkMode),
   });
 
+  // En modo embebido (TraccarWeb), Glove intenta usar el ThemeProvider del host
+  // Si no está disponible, crea su propio (fallback para errores)
+  if (!STANDALONE) {
+    return (
+      <ThemeProvider theme={gloveTheme}>
+        <AppRoutes />
+      </ThemeProvider>
+    );
+  }
+
+  // Standalone: crear theme e inyectar
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={gloveTheme}>
       <CssBaseline />
       <BrowserRouter>
         <AppRoutes />
