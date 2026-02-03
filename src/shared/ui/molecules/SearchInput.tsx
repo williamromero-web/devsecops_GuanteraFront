@@ -29,12 +29,16 @@ export function SearchInput({
   sx,
   maxWidth,
 }: Readonly<SearchInputProps>) {
-  const showClear = !loading && !disabled && value.trim().length > 0 && !!onClear;
+  const showClear =
+    !loading && !disabled && value.trim().length > 0 && !!onClear;
 
   const endAdornment = (
     <InputAdornment position="end">
       {loading ? (
-        <CircularProgress size={18} sx={{ color: (theme) => theme.palette.primary.light }} />
+        <CircularProgress
+          size={18}
+          sx={{ color: (theme) => theme.palette.primary.light }}
+        />
       ) : null}
       {!loading && showClear ? (
         <IconButton
@@ -69,7 +73,7 @@ export function SearchInput({
         input: {
           sx: {
             borderRadius: 3,
-            bgcolor: "background.paper",
+            bgcolor: (theme) => theme.palette.mode === "dark" ? "#000000" : "background.paper",
             color: "text.primary",
             boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
             border: value.trim()
@@ -90,7 +94,9 @@ export function SearchInput({
               <SearchIcon
                 sx={{
                   color: (theme) =>
-                    value.trim() ? theme.palette.primary.light : theme.palette.text.secondary,
+                    value.trim()
+                      ? theme.palette.primary.light
+                      : theme.palette.text.secondary,
                 }}
               />
             </InputAdornment>
@@ -102,4 +108,3 @@ export function SearchInput({
     />
   );
 }
-
