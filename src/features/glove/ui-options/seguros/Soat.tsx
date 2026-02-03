@@ -41,6 +41,12 @@ export function Soat({ plate }: Readonly<SoatProps>) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // TODO: implementacion de api para obtener datos de SOAT
+  // CAMBIO REQUERIDO:
+  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/soat
+  // 2. Usar useEffect para cargar datos al montar componente
+  // 3. Mapear respuesta de API a estados (statusType, numeroPoliza, fechaVencimiento, file)
+
   const statusType = "OK"; // "OK" | "PRÓXIMO A VENCER" | "VENCIDO"
   const numeroPoliza = "POL-123456789";
   const fechaVencimiento = "31/12/2025";

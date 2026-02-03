@@ -37,6 +37,12 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // TODO: implementacion de api para obtener datos de tarjeta de propiedad
+  // CAMBIO REQUERIDO:
+  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/tarjeta-propiedad
+  // 2. Usar useEffect para cargar datos al montar componente
+  // 3. Actualizar estados con respuesta del servidor
+
   const [propertyNumber, setPropertyNumber] = useState("ABC123456");
   const service = "Particular";
   const vehTypeName = "Automóvil";
@@ -58,6 +64,12 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
     setError(null);
     setMessage(null);
 
+    // TODO: implementacion de api para actualizar tarjeta de propiedad
+    // CAMBIO REQUERIDO:
+    // 1. Reemplazar setTimeout mock con llamada PUT a API: /simon-glove/private/vehicles/{plate}/tarjeta-propiedad
+    // 2. Incluir propertyNumber en el body de la solicitud
+    // 3. Manejar respuesta de API y validar éxito
+
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     setSaving(false);
@@ -66,6 +78,13 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
   };
 
   const handleSaveDocument = async (file: File) => {
+    // TODO: implementacion de api para guardar documento tarjeta de propiedad
+    // CAMBIO REQUERIDO:
+    // 1. Reemplazar mock con llamada POST a API: /simon-glove/private/vehicles/{plate}/tarjeta-propiedad/upload
+    // 2. Usar FormData para enviar archivo
+    // 3. Validar tipo de archivo (PDF)
+    // 4. Actualizar UI con datos del archivo guardado
+
     setHasFile(true);
     setFileName(file.name);
     setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);

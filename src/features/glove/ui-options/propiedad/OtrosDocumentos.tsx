@@ -32,7 +32,9 @@ export interface OtrosDocumentosProps {
   plate: string;
 }
 
-export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps>) {
+export function OtrosDocumentos({
+  plate: _plate,
+}: Readonly<OtrosDocumentosProps>) {
   const theme = useTheme();
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -56,22 +58,32 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
     },
   ]);
 
-  const handleInputChange = (index: number, field: keyof Document, value: string) => {
+  const handleInputChange = (
+    index: number,
+    field: keyof Document,
+    value: string,
+  ) => {
     const nuevosDocumentos = [...documentos];
     (nuevosDocumentos[index][field] as any) = value;
     setDocumentos(nuevosDocumentos);
   };
 
-  const handleFileChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const nuevosDocumentos = [...documentos];
     const selectedFiles = Array.from(event.target.files || []);
     const maxFiles = 2;
-    
-    if ((nuevosDocumentos[index].archivos?.length || 0) + selectedFiles.length > maxFiles) {
+
+    if (
+      (nuevosDocumentos[index].archivos?.length || 0) + selectedFiles.length >
+      maxFiles
+    ) {
       setError(`Máximo ${maxFiles} archivos por documento.`);
       return;
     }
-    
+
     nuevosDocumentos[index].archivos = [
       ...(nuevosDocumentos[index].archivos || []),
       ...selectedFiles,
@@ -82,9 +94,9 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
 
   const handleRemoveFile = (docIndex: number, fileIndex: number) => {
     const nuevosDocumentos = [...documentos];
-    nuevosDocumentos[docIndex].archivos = nuevosDocumentos[docIndex].archivos.filter(
-      (_, idx) => idx !== fileIndex
-    );
+    nuevosDocumentos[docIndex].archivos = nuevosDocumentos[
+      docIndex
+    ].archivos.filter((_, idx) => idx !== fileIndex);
     setDocumentos(nuevosDocumentos);
   };
 
@@ -128,12 +140,18 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
       }
     }
 
+    // TODO: implementacion de api para guardar otros documentos
+    // CAMBIO REQUERIDO:
+    // 1. Reemplazar setTimeout mock con llamada POST a API: /simon-glove/private/vehicles/{plate}/otros-documentos
+    // 2. Incluir FormData con archivos: new FormData()
+    // 3. Manejar respuesta de API y asignar IDs retornados a documentos
+    // 4. Actualizar estado con respuesta del servidor
+
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSaving(false);
     setIsEditing(false);
     setMessage("Documentos guardados correctamente.");
   };
-
 
   return (
     <>
@@ -201,7 +219,9 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                 size="small"
                 required
                 disabled={!isEditing}
-                onChange={(e) => handleInputChange(docIndex, "nombre", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(docIndex, "nombre", e.target.value)
+                }
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     bgcolor: theme.palette.background.paper,
@@ -219,7 +239,9 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                 size="small"
                 required
                 disabled={!isEditing}
-                onChange={(e) => handleInputChange(docIndex, "entidad", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(docIndex, "entidad", e.target.value)
+                }
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     bgcolor: theme.palette.background.paper,
@@ -241,7 +263,9 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                 InputLabelProps={{
                   shrink: true,
                 }}
-                onChange={(e) => handleInputChange(docIndex, "fechaExpedicion", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(docIndex, "fechaExpedicion", e.target.value)
+                }
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     bgcolor: theme.palette.background.paper,
@@ -262,7 +286,13 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                 InputLabelProps={{
                   shrink: true,
                 }}
-                onChange={(e) => handleInputChange(docIndex, "fechaVencimiento", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    docIndex,
+                    "fechaVencimiento",
+                    e.target.value,
+                  )
+                }
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     bgcolor: theme.palette.background.paper,
@@ -280,7 +310,9 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                 multiline
                 rows={3}
                 disabled={!isEditing}
-                onChange={(e) => handleInputChange(docIndex, "observaciones", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(docIndex, "observaciones", e.target.value)
+                }
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     bgcolor: theme.palette.background.paper,
@@ -364,9 +396,14 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                       mb: 1,
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1.25 }}
+                    >
                       <DescriptionIcon
-                        sx={{ color: theme.palette.text.secondary, fontSize: "1.25rem" }}
+                        sx={{
+                          color: theme.palette.text.secondary,
+                          fontSize: "1.25rem",
+                        }}
                       />
                       <Box>
                         <Typography
@@ -384,7 +421,7 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
                             color: theme.palette.text.secondary,
                           }}
                         >
-                          {((file.size / 1024).toFixed(1))} KB
+                          {(file.size / 1024).toFixed(1)} KB
                         </Typography>
                       </Box>
                     </Box>
@@ -445,7 +482,14 @@ export function OtrosDocumentos({ plate: _plate }: Readonly<OtrosDocumentosProps
         </Box>
       )}
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
         {isEditing && (
           <Button
             variant="outlined"

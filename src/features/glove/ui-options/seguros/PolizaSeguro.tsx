@@ -41,6 +41,12 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // TODO: implementacion de api para obtener datos de póliza de seguro
+  // CAMBIO REQUERIDO:
+  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/poliza-seguro
+  // 2. Usar useEffect para cargar datos al montar componente
+  // 3. Mapear respuesta de API a estados (statusType, numeroPoliza, aseguradora, etc)
+
   const statusType = "OK"; // "OK" | "PRÓXIMO A VENCER" | "VENCIDO"
   const [numeroPoliza, setNumeroPoliza] = useState("POL-SEG-987654");
   const [aseguradora, setAseguradora] = useState("Seguros del Estado");
@@ -108,6 +114,13 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
     setSaving(true);
     setError(null);
     setMessage(null);
+
+    // TODO: implementacion de api para actualizar póliza de seguro
+    // CAMBIO REQUERIDO:
+    // 1. Reemplazar setTimeout mock con llamada PUT a API: /simon-glove/private/vehicles/{plate}/poliza-seguro
+    // 2. Incluir datos de póliza en el body: numeroPoliza, aseguradora, fechaVigencia, contactoAsistencia
+    // 3. Validar datos antes de enviar
+
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSaving(false);
     setIsEditing(false);
@@ -115,6 +128,13 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
   };
 
   const handleSaveDocument = async (file: File) => {
+    // TODO: implementacion de api para guardar documento de póliza de seguro
+    // CAMBIO REQUERIDO:
+    // 1. Reemplazar mock con llamada POST a API: /simon-glove/private/vehicles/{plate}/poliza-seguro/upload
+    // 2. Usar FormData para enviar archivo
+    // 3. Validar tipo de archivo (PDF)
+    // 4. Actualizar UI con datos del archivo guardado
+
     setHasFile(true);
     setFileName(file.name);
     setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);

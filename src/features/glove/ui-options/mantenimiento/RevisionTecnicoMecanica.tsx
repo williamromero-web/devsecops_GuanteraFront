@@ -43,6 +43,12 @@ export function RevisionTecnicoMecanica({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // TODO: implementacion de api para obtener datos de Revisión Técnico Mecánica (RTM)
+  // CAMBIO REQUERIDO:
+  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/rtm
+  // 2. Usar useEffect para cargar datos al montar componente
+  // 3. Mapear respuesta de API a estados (statusType, fechaUltimaRevision, fechaVencimiento, file)
+
   const statusType = "OK";
   const fechaUltimaRevision = "15/01/2024";
   const fechaVencimiento = "15/01/2025";
