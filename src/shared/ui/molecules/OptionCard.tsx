@@ -53,7 +53,7 @@ export function OptionCard({
         alignItems: "center",
         gap: 1,
         p: 1,
-        borderRadius: 3,
+        borderRadius: 5,
         border: `1px solid ${cfg.border}`,
         bgcolor: cfg.bg,
         cursor: clickable ? "pointer" : "not-allowed",

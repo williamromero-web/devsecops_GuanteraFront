@@ -4,7 +4,11 @@ import { useTheme } from "@mui/material/styles";
 import type { Vehicle } from "../types/domain";
 import { MODULES, type ModuleKey } from "../config/optionsConfig";
 import { ESSENTIAL_MODULE_MAP } from "../config/essentialMap";
-import { getAggregatedStatus, getModuleStatus, getVehicleStatus } from "../lib/status";
+import {
+  getAggregatedStatus,
+  getModuleStatus,
+  getVehicleStatus,
+} from "../lib/status";
 import { StatusChip } from "../../../shared/ui/molecules/StatusChip";
 import { OptionCard } from "../../../shared/ui/molecules/OptionCard";
 
@@ -63,7 +67,12 @@ function highlightText(text: string, searchTerm: string, theme: Theme) {
   );
 }
 
-export function VehicleCard({ vehicle, searchTerm = "", onModuleClick, sx }: Readonly<VehicleCardProps>) {
+export function VehicleCard({
+  vehicle,
+  searchTerm = "",
+  onModuleClick,
+  sx,
+}: Readonly<VehicleCardProps>) {
   const theme = useTheme();
   if (!vehicle) return null;
 
@@ -81,7 +90,7 @@ export function VehicleCard({ vehicle, searchTerm = "", onModuleClick, sx }: Rea
       <Paper
         sx={{
           p: 2.5,
-          borderRadius: 2,
+          borderRadius: 4,
           border: `1px solid ${borderColor}`,
           height: "100%",
           display: "flex",
@@ -102,7 +111,13 @@ export function VehicleCard({ vehicle, searchTerm = "", onModuleClick, sx }: Rea
           }}
         >
           <Box sx={{ order: { xs: 2, sm: 1 } }}>
-            <Typography sx={{ fontSize: "0.75rem", color: theme.palette.text.secondary, fontWeight: 500 }}>
+            <Typography
+              sx={{
+                fontSize: "0.75rem",
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+              }}
+            >
               Placa
             </Typography>
 
@@ -115,25 +130,38 @@ export function VehicleCard({ vehicle, searchTerm = "", onModuleClick, sx }: Rea
                 display: "inline-block",
               }}
             >
-              {searchTerm.trim() ? highlightText(plate, searchTerm, theme) : plate}
+              {searchTerm.trim()
+                ? highlightText(plate, searchTerm, theme)
+                : plate}
             </Box>
           </Box>
 
-          <Box sx={{ order: { xs: 1, sm: 2 }, alignSelf: { xs: "flex-end", sm: "auto" } }}>
+          <Box
+            sx={{
+              order: { xs: 1, sm: 2 },
+              alignSelf: { xs: "flex-end", sm: "auto" },
+            }}
+          >
             <StatusChip variant={chipVariant} />
           </Box>
         </Box>
 
         <Grid container spacing={1.5}>
           {MODULES.map((m) => {
-            const moduleStatus = getModuleStatus(vehicle, m.key, ESSENTIAL_MODULE_MAP);
+            const moduleStatus = getModuleStatus(
+              vehicle,
+              m.key,
+              ESSENTIAL_MODULE_MAP,
+            );
             return (
               <Grid key={m.key} size={{ xs: 12, sm: 6 }}>
                 <OptionCard
                   moduleKey={m.key}
                   label={m.label}
                   status={moduleStatus}
-                  onClick={onModuleClick ? () => onModuleClick(m.key) : undefined}
+                  onClick={
+                    onModuleClick ? () => onModuleClick(m.key) : undefined
+                  }
                 />
               </Grid>
             );
@@ -143,4 +171,3 @@ export function VehicleCard({ vehicle, searchTerm = "", onModuleClick, sx }: Rea
     </Grid>
   );
 }
-

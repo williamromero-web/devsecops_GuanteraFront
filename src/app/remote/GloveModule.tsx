@@ -28,7 +28,7 @@ export interface GloveModuleConfig {
  * - index -> listado (placas, paginación, búsqueda)
  * - :plate/:module -> detalle
  * - :plate/:module/:option -> opción
- * 
+ *
  * Cuando se ejecuta como módulo embebido (VITE_STANDALONE=false), hereda el ThemeProvider
  * del host (TraccarWeb) para que los estilos se apliquen correctamente.
  * Si el host pasa themeMode, se crea un ThemeProvider con ese modo.
