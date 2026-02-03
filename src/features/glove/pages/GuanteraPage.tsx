@@ -41,6 +41,13 @@ export function GuanteraPage() {
 
   const currentPage = Math.min(page, Math.max(1, totalPages));
 
+  const primaryLight = theme.palette.primary?.light ?? "#1976d2";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background?.paper ??
+    theme.palette.background?.default ??
+    "#f5f5f5";
+
   const headerExtra = (
     <Box
       sx={{
@@ -60,14 +67,14 @@ export function GuanteraPage() {
             px: 1.5,
             py: 0.5,
             borderRadius: 3,
-            border: (t) => `2px solid ${t.palette.primary.light}`,
-            bgcolor: (t) => `${t.palette.primary.light}1A`,
+            border: `2px solid ${primaryLight}`,
+            bgcolor: `${primaryLight}1A`,
             minWidth: 60,
             textAlign: "center",
           }}
         >
           <Typography
-            sx={{ color: (t) => t.palette.primary.light, fontWeight: 600 }}
+            sx={{ color: primaryLight, fontWeight: 600 }}
           >
             {totalItems}
           </Typography>
@@ -118,8 +125,9 @@ export function GuanteraPage() {
         <Paper
           sx={{
             p: 3,
-            bgcolor: "background.paper",
-            borderRadius: 3,
+            bgcolor: "#000000",
+            background: "#000000",
+            borderRadius: 1,
             border: `1px solid ${
               (theme.palette as { border?: { main?: string } })?.border?.main ??
               theme.palette.divider ??
@@ -180,8 +188,9 @@ export function GuanteraPage() {
           <Paper
             sx={{
               p: 2,
-              bgcolor: "background.paper",
-              borderRadius: 3,
+              bgcolor: "#000000",
+              background: "#000000",
+              borderRadius: 1,
               border: `1px solid ${
                 (theme.palette as { border?: { main?: string } })?.border
                   ?.main ??
@@ -209,11 +218,7 @@ export function GuanteraPage() {
               <Box
                 component="span"
                 sx={{
-                  bgcolor: (t) =>
-                    (t.palette as { surface?: { alt?: string } })?.surface
-                      ?.alt ??
-                    t.palette.background.paper ??
-                    t.palette.background.default,
+                  bgcolor: surfaceAlt,
                   px: 1.5,
                   py: 0.5,
                   borderRadius: 1,

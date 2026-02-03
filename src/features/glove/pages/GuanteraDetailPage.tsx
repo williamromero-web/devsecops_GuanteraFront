@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   GloveLayout,
@@ -18,6 +19,13 @@ import { ModuleIcon } from "../../../shared/ui/atoms/ModuleIcon";
 export function GuanteraDetailPage() {
   const { plate, module } = useParams<{ plate: string; module: string }>();
   const navigate = useNavigate();
+  const theme = useTheme();
+
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background?.paper ??
+    theme.palette.background?.default ??
+    "#f5f5f5";
 
   const moduleKey = (module as ModuleKey) || "propiedad";
   const moduleLabel = MODULE_LABELS[moduleKey] ?? "Módulo";
@@ -48,11 +56,7 @@ export function GuanteraDetailPage() {
                 width: 48,
                 height: 48,
                 borderRadius: 3,
-                bgcolor: (t) =>
-                  ((t.palette as { surface?: { alt?: string } })?.surface
-                    ?.alt ??
-                    t.palette.background.paper ??
-                    t.palette.background.default),
+                bgcolor: surfaceAlt,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

@@ -80,7 +80,7 @@ function buildMenu(p: TokenPalette, server: ServerLike, darkMode: boolean) {
 
 function buildCard(p: TokenPalette, darkMode: boolean) {
   return {
-    background: darkMode ? p.surface : p.background,
+    background: p.background,
     border: darkMode ? "#1F1F1F" : p.border,
     label: p.text.secondary,
     plate: p.text.primary,
@@ -159,7 +159,7 @@ export function palette(server: ServerLike, darkMode: boolean) {
     mode: colorMode,
     background: {
       default: p.background,
-      paper: darkMode ? p.surface : p.background,
+      paper: p.background,
     },
     surface: {
       main: p.surface,

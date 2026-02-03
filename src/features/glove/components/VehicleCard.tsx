@@ -90,13 +90,14 @@ export function VehicleCard({
       <Paper
         sx={{
           p: 2.5,
-          borderRadius: 4,
+          borderRadius: 1,
           border: `1px solid ${borderColor}`,
           height: "100%",
           display: "flex",
           flexDirection: "column",
           gap: 2,
-          bgcolor: theme.palette.background.paper,
+          bgcolor: "#000000",
+          background: "#000000",
           boxShadow: theme.shadows[1],
           ...sx,
         }}
@@ -114,7 +115,7 @@ export function VehicleCard({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                color: "#000000",
+                color: "#ffffff",
                 fontWeight: 500,
               }}
             >
@@ -126,7 +127,7 @@ export function VehicleCard({
               sx={{
                 fontSize: "1.7rem",
                 fontWeight: 600,
-                color: theme.palette.text.primary,
+                color: "#ffffff",
                 display: "inline-block",
               }}
             >

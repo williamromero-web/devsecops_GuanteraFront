@@ -14,10 +14,18 @@ export function GloveLayout({
   sx,
 }: Readonly<GloveLayoutProps>) {
   const theme = useTheme();
+  const isDark = theme.palette?.mode === "dark";
+  const paperBg =
+    theme.palette?.background?.paper ??
+    theme.palette?.background?.default ??
+    "#ffffff";
   const alwaysDarkMain =
     (theme.palette as { alwaysDark?: { main?: string } })?.alwaysDark?.main ??
-    theme.palette.background.paper ??
-    theme.palette.background.default;
+    paperBg;
+  const headerBg = isDark ? alwaysDarkMain : paperBg;
+  const contentBg = isDark ? "transparent" : paperBg;
+  const primaryLight = theme.palette?.primary?.light ?? "#1976d2";
+  const textPrimary = theme.palette?.text?.primary ?? "#000000";
 
   return (
     <Box
@@ -33,15 +41,12 @@ export function GloveLayout({
       <Box
         sx={{
           flexShrink: 0,
-          bgcolor:
-            theme.palette.mode === "dark"
-              ? alwaysDarkMain
-              : theme.palette.background.paper,
+          bgcolor: headerBg,
           p: 2,
           display: "flex",
           flexDirection: "column",
           gap: 2,
-          borderRadius: theme.palette.mode === "dark" ? 0 : "16px 16px 0 0",
+          borderRadius: isDark ? 0 : "16px 16px 0 0",
         }}
       >
         <Box
@@ -56,10 +61,7 @@ export function GloveLayout({
           <Typography
             sx={{
               fontSize: "1.7rem",
-              color:
-                theme.palette.mode === "dark"
-                  ? theme.palette.primary.light
-                  : theme.palette.text.primary,
+              color: isDark ? primaryLight : textPrimary,
               fontWeight: "bold",
             }}
           ></Typography>
@@ -67,13 +69,13 @@ export function GloveLayout({
         </Box>
       </Box>
 
-      <Box 
-        sx={{ 
-          flexGrow: 1, 
-          minHeight: 0, 
+      <Box
+        sx={{
+          flexGrow: 1,
+          minHeight: 0,
           overflow: "auto",
-          bgcolor: theme.palette.mode === "dark" ? "transparent" : theme.palette.background.paper,
-          borderRadius: theme.palette.mode === "dark" ? 0 : "0 0 16px 16px",
+          bgcolor: contentBg,
+          borderRadius: isDark ? 0 : "0 0 16px 16px",
         }}
       >
         {children}
