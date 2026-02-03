@@ -1,4 +1,12 @@
-import { Box, Paper, Typography, Grid, Pagination, CircularProgress, Alert } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Typography,
+  Grid,
+  Pagination,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -44,9 +52,7 @@ export function GuanteraPage() {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Typography
-          sx={{ color: (t) => t.palette.primary.light, whiteSpace: "nowrap" }}
-        >
+        <Typography sx={{ color: "#000000", whiteSpace: "nowrap" }}>
           Total Vehículos
         </Typography>
         <Box
@@ -87,11 +93,24 @@ export function GuanteraPage() {
 
   return (
     <GloveLayout headerExtra={headerExtra}>
-      <Box sx={{ p: 3, pb: 4, display: "flex", flexDirection: "column", gap: 3, minHeight: 0 }}>
+      <Box
+        sx={{
+          p: 3,
+          pb: 4,
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+          minHeight: 0,
+        }}
+      >
         <DisclaimerBanner />
 
         {error && (
-          <Alert severity="error" onClose={() => refetch()} sx={{ borderRadius: 2 }}>
+          <Alert
+            severity="error"
+            onClose={() => refetch()}
+            sx={{ borderRadius: 2 }}
+          >
             {error.message}
           </Alert>
         )}
@@ -102,8 +121,9 @@ export function GuanteraPage() {
             bgcolor: "background.paper",
             borderRadius: 3,
             border: `1px solid ${
-              (theme.palette as { border?: { main?: string } })?.border
-                ?.main ?? theme.palette.divider ?? "#D0D0D0"
+              (theme.palette as { border?: { main?: string } })?.border?.main ??
+              theme.palette.divider ??
+              "#D0D0D0"
             }`,
             display: "flex",
             flexDirection: "column",
@@ -164,7 +184,9 @@ export function GuanteraPage() {
               borderRadius: 3,
               border: `1px solid ${
                 (theme.palette as { border?: { main?: string } })?.border
-                  ?.main ?? theme.palette.divider ?? "#D0D0D0"
+                  ?.main ??
+                theme.palette.divider ??
+                "#D0D0D0"
               }`,
               display: "flex",
               justifyContent: "space-between",
@@ -188,10 +210,10 @@ export function GuanteraPage() {
                 component="span"
                 sx={{
                   bgcolor: (t) =>
-                    ((t.palette as { surface?: { alt?: string } })?.surface
+                    (t.palette as { surface?: { alt?: string } })?.surface
                       ?.alt ??
-                      t.palette.background.paper ??
-                      t.palette.background.default),
+                    t.palette.background.paper ??
+                    t.palette.background.default,
                   px: 1.5,
                   py: 0.5,
                   borderRadius: 1,

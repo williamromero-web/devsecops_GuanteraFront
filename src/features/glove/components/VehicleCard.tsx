@@ -114,7 +114,7 @@ export function VehicleCard({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                color: theme.palette.text.secondary,
+                color: "#000000",
                 fontWeight: 500,
               }}
             >
