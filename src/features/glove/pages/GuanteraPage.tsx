@@ -48,6 +48,12 @@ export function GuanteraPage() {
     theme.palette.background?.default ??
     "#f5f5f5";
 
+  const isDark = theme.palette?.mode === "dark";
+  const cardBg =
+    isDark
+      ? "#000000"
+      : (theme.palette.background?.paper ?? theme.palette.background?.default ?? "#ffffff");
+
   const headerExtra = (
     <Box
       sx={{
@@ -59,7 +65,12 @@ export function GuanteraPage() {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Typography sx={{ color: "#000000", whiteSpace: "nowrap" }}>
+        <Typography
+          sx={{
+            color: theme.palette.text?.primary ?? "#000000",
+            whiteSpace: "nowrap",
+          }}
+        >
           Total Vehículos
         </Typography>
         <Box
@@ -125,8 +136,8 @@ export function GuanteraPage() {
         <Paper
           sx={{
             p: 3,
-            bgcolor: "#000000",
-            background: "#000000",
+            bgcolor: cardBg,
+            background: cardBg,
             borderRadius: 1,
             border: `1px solid ${
               (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -188,8 +199,8 @@ export function GuanteraPage() {
           <Paper
             sx={{
               p: 2,
-              bgcolor: "#000000",
-              background: "#000000",
+              bgcolor: cardBg,
+              background: cardBg,
               borderRadius: 1,
               border: `1px solid ${
                 (theme.palette as { border?: { main?: string } })?.border

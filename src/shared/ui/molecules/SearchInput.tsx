@@ -73,8 +73,11 @@ export function SearchInput({
         input: {
           sx: {
             borderRadius: 3,
-            bgcolor: (theme) => theme.palette.mode === "dark" ? "#000000" : "background.paper",
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark" ? "#000000" : "background.paper",
             color: "text.primary",
+            fontWeight: 600,
+            fontSize: "1rem",
             boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
             border: value.trim()
               ? (theme) => `2px solid ${theme.palette.primary.light}`

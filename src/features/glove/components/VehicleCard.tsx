@@ -85,6 +85,13 @@ export function VehicleCard({
     theme.palette.divider ??
     "#D0D0D0";
 
+  const isDark = theme.palette?.mode === "dark";
+  const cardBg =
+    isDark
+      ? "#000000"
+      : (theme.palette.background?.paper ?? theme.palette.background?.default ?? "#ffffff");
+  const cardTextColor = isDark ? "#ffffff" : (theme.palette.text?.primary ?? "#000000");
+
   return (
     <Grid size={{ xs: 12, md: 4 }}>
       <Paper
@@ -96,8 +103,8 @@ export function VehicleCard({
           display: "flex",
           flexDirection: "column",
           gap: 2,
-          bgcolor: "#000000",
-          background: "#000000",
+          bgcolor: cardBg,
+          background: cardBg,
           boxShadow: theme.shadows[1],
           ...sx,
         }}
@@ -115,7 +122,7 @@ export function VehicleCard({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                color: "#ffffff",
+                color: cardTextColor,
                 fontWeight: 500,
               }}
             >
@@ -127,7 +134,7 @@ export function VehicleCard({
               sx={{
                 fontSize: "1.7rem",
                 fontWeight: 600,
-                color: "#ffffff",
+                color: cardTextColor,
                 display: "inline-block",
               }}
             >
