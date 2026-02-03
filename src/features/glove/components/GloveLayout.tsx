@@ -24,7 +24,7 @@ export function GloveLayout({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
+        height: "100%",
         bgcolor: theme.palette.background.default,
         ...sx,
       }}
