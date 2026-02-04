@@ -26,19 +26,19 @@ export function useGuanteraDocuments(
   _plate: string | undefined,
   _optionKey: string | undefined,
 ): UseGuanteraDocumentsResult {
-  // Fase 8 maquetado: devolver lista vacía y operaciones no-op.
+
   return {
     documents: [],
     loading: false,
     error: null,
     async upload() {
-      // no-op (quemado)
+   
     },
     async remove() {
-      // no-op (quemado)
+   
     },
     async refetch() {
-      // no-op (quemado)
+   
     },
   };
 }

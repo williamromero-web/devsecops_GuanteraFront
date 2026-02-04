@@ -18,10 +18,7 @@ export interface OptionConfigItem {
   icon?: unknown;
   disabled?: boolean;
   maintenance?: boolean;
-  /**
-   * Nombres (posibles) del essential asociado a la opción.
-   * Se usan para comparar con `vehicle.essentials[].name` (normalizado).
-   */
+
   essentialNames?: string[];
 }
 
