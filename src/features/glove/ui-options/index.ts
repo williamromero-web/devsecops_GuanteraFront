@@ -19,7 +19,12 @@ import {
   RevisionTecnicoMecanica,
   GuiaControlMantenimiento,
 } from "./mantenimiento";
-import { PicoYPlaca, KitCarretera, Botiquin } from "./operacion";
+import {
+  PicoYPlaca,
+  KitCarretera,
+  Botiquin,
+  LicenciaConduccion,
+} from "./operacion";
 
 export const OPTION_COMPONENTS: Record<
   string,
@@ -44,6 +49,7 @@ export const OPTION_COMPONENTS: Record<
   "guia-control-mantenimiento": GuiaControlMantenimiento,
 
   // Operación
+  "licencia-conduccion": LicenciaConduccion,
   "pico-y-placa": PicoYPlaca,
   "kit-carretera": KitCarretera,
   botiquin: Botiquin,

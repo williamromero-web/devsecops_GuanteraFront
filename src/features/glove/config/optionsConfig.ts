@@ -93,7 +93,6 @@ export const OPTIONS_CONFIG: Record<ModuleKey, OptionConfigItem[]> = {
     {
       key: "licencia-conduccion",
       label: "Licencia de conducción",
-      disabled: true,
       essentialNames: ["licencia de conducción", "licencia de conduccion"],
     },
     {
