@@ -113,8 +113,6 @@ export const OPTIONS_CONFIG: Record<ModuleKey, OptionConfigItem[]> = {
     {
       key: "testigos",
       label: "Testigos",
-      disabled: true,
-      maintenance: true,
       essentialNames: [],
     },
   ],

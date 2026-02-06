@@ -136,6 +136,10 @@ export function VehicleCard({
                 fontWeight: 600,
                 color: cardTextColor,
                 display: "inline-block",
+                maxWidth: { xs: "100%", sm: "230px" },
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {searchTerm.trim()
@@ -147,7 +151,10 @@ export function VehicleCard({
           <Box
             sx={{
               order: { xs: 1, sm: 2 },
-              alignSelf: { xs: "flex-end", sm: "auto" },
+              alignSelf: { xs: "stretch", sm: "auto" },
+              display: "flex",
+              justifyContent: { xs: "flex-end", sm: "flex-end" },
+              maxWidth: "100%",
             }}
           >
             <StatusChip variant={chipVariant} />

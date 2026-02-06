@@ -24,6 +24,7 @@ import {
   KitCarretera,
   Botiquin,
   LicenciaConduccion,
+  Testigos,
 } from "./operacion";
 
 export const OPTION_COMPONENTS: Record<
@@ -53,6 +54,7 @@ export const OPTION_COMPONENTS: Record<
   "pico-y-placa": PicoYPlaca,
   "kit-carretera": KitCarretera,
   botiquin: Botiquin,
+  testigos: Testigos,
 };
 
 export function getOptionComponent(
