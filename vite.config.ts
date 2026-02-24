@@ -9,14 +9,24 @@ const pkg = require("./package.json") as {
 };
 const deps = pkg.dependencies ?? {};
 
-// https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __API_BASE_URL__: JSON.stringify(
+      process.env.VITE_API_BASE_URL || "http://localhost:8080",
+    ),
+  },
   server: {
     port: 5174,
     strictPort: true,
     cors: true,
     headers: {
       "Access-Control-Allow-Origin": "*",
+    },
+    proxy: {
+      "^(?!/src|/node_modules)": {
+        target: process.env.VITE_API_BASE_URL || "http://localhost:8080",
+        changeOrigin: true,
+      },
     },
   },
   build: {
