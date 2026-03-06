@@ -23,7 +23,11 @@ export default defineConfig({
       "Access-Control-Allow-Origin": "*",
     },
     proxy: {
-      "^(?!/src|/node_modules)": {
+      "/api": {
+        target: process.env.VITE_API_BASE_URL || "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/insurancepolicy": {
         target: process.env.VITE_API_BASE_URL || "http://localhost:8080",
         changeOrigin: true,
       },

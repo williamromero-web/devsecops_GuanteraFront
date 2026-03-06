@@ -12,14 +12,20 @@ import {
   type ModuleKey,
   OPTIONS_CONFIG,
 } from "../config/optionsConfig";
-import { getAggregatedStatus, getVehicleStatus } from "../lib/status";
-import { useVehicle } from "../hooks/useVehicle";
+// import { getAggregatedStatus, getVehicleStatus } from "../lib/status";
+// import { useVehicle } from "../hooks/useVehicle";
 import { ModuleIcon } from "../../../shared/ui/atoms/ModuleIcon";
+import { useModuleDetail } from "../hooks/useModuleDetail";
 
 export function GuanteraDetailPage() {
   const { plate, module } = useParams<{ plate: string; module: string }>();
+  const { data, loading } = useModuleDetail(plate!, module!);
   const navigate = useNavigate();
   const theme = useTheme();
+
+  console.log("data module detail", data);
+  
+  if (loading) return <div>Cargando...</div>;
 
   const surfaceAlt =
     (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
@@ -30,12 +36,12 @@ export function GuanteraDetailPage() {
   const moduleKey = (module as ModuleKey) || "propiedad";
   const moduleLabel = MODULE_LABELS[moduleKey] ?? "Módulo";
 
-  const { vehicle } = useVehicle(plate);
-  const isActive = (() => {
-    if (!vehicle) return true;
-    const agg = getAggregatedStatus(vehicle);
-    return getVehicleStatus(agg) === "activo";
-  })();
+  // const { vehicle } = useVehicle(plate);
+  // const isActive = (() => {
+  //   if (!vehicle) return true;
+  //   const agg = getAggregatedStatus(vehicle);
+  //   return getVehicleStatus(agg) === "activo";
+  // })();
 
   const breadcrumbItems = [
     { label: "", to: "/glove" },
@@ -67,11 +73,12 @@ export function GuanteraDetailPage() {
           }
         />
 
-        <VehicleInfoSection plate={plate ?? "—"} isActive={isActive} />
+        <VehicleInfoSection plate={plate ?? "—"} isActive={true} />
 
         <OptionsGrid
           options={OPTIONS_CONFIG[moduleKey] ?? []}
-          vehicle={vehicle}
+          // vehicle={vehicle}
+          moduleDetail={data}
           onSelect={(optionKey) =>
             navigate(`/glove/${plate}/${moduleKey}/${optionKey}`)
           }

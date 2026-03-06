@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Grid,
   Paper,
   TextField,
@@ -14,17 +13,21 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import WarningIcon from "@mui/icons-material/Warning";
-import ErrorIcon from "@mui/icons-material/Error";
 import { useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { useSoat } from "../../hooks/useSoat";
+import {
+  uploadDocument,
+  formatDateToDD_MM_YYYY,
+  formatToDD_MM_YYYY,
+} from "../../services/documentUpload";
 
 export interface SoatProps {
   plate: string;
+  vehicleId?: number | string;
 }
 
-export function Soat({ plate }: Readonly<SoatProps>) {
+export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
   const theme = useTheme();
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -41,57 +44,18 @@ export function Soat({ plate }: Readonly<SoatProps>) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: implementacion de api para obtener datos de SOAT
-  // CAMBIO REQUERIDO:
-  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/soat
-  // 2. Usar useEffect para cargar datos al montar componente
-  // 3. Mapear respuesta de API a estados (statusType, numeroPoliza, fechaVencimiento, file)
-
-  const statusType = "OK"; // "OK" | "PRÓXIMO A VENCER" | "VENCIDO"
-  const numeroPoliza = "POL-123456789";
-  const fechaVencimiento = "31/12/2025";
-  const [hasFile, setHasFile] = useState(true);
-  const [fileName, setFileName] = useState("soat.pdf");
-  const [fileSizeLabel, setFileSizeLabel] = useState("220.0 KB");
+  // Load SOAT data using hook
+  const soat = useSoat(plate);
 
   const getStatusInfo = () => {
-    if (statusType === "OK") {
-      return {
-        title: "SOAT VIGENTE",
-        message:
-          "El Seguro Obligatorio de Accidentes de Tránsito correspondiente al vehículo seleccionado, se encuentra VIGENTE a la fecha. A continuación se detalla la información de la póliza:",
-        chip: { label: "VIGENTE", icon: CheckCircleIcon, color: "success" },
-      };
-    }
-    if (statusType === "PRÓXIMO A VENCER") {
-      return {
-        title: "SOAT PRÓXIMO A VENCER",
-        message:
-          "El Seguro Obligatorio de Accidentes de Tránsito correspondiente al vehículo seleccionado, está próximo a vencer. A continuación se detalla la información de la póliza:",
-        chip: {
-          label: "PRÓXIMO A VENCER",
-          icon: WarningIcon,
-          color: "warning",
-        },
-      };
-    }
-    if (statusType === "VENCIDO") {
-      return {
-        title: "SOAT VENCIDO",
-        message:
-          "El Seguro Obligatorio de Accidentes de Tránsito correspondiente al vehículo seleccionado, se encuentra VENCIDO. A continuación se detalla la información de la póliza:",
-        chip: { label: "VENCIDO", icon: ErrorIcon, color: "error" },
-      };
-    }
     return {
       title: "SOAT",
-      message: "A continuación se detalla la información de la póliza:",
+      message: "Below is the policy information:",
       chip: null,
     };
   };
 
   const statusInfo = getStatusInfo();
-  const StatusIcon = statusInfo.chip?.icon;
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -106,21 +70,60 @@ export function Soat({ plate }: Readonly<SoatProps>) {
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSaving(false);
     setIsEditing(false);
-    setMessage("Información y archivo guardados correctamente (mock).");
+    setMessage("Information and file saved successfully (mock).");
   };
 
   const handleSaveDocument = async (file: File) => {
-    setHasFile(true);
-    setFileName(file.name);
-    setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-    setMessage("Archivo guardado correctamente (mock).");
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      if (!vehicleIdProp) {
+        throw new Error("Vehicle ID not available.");
+      }
+
+      // Dates in DD-MM-YYYY format
+      const today = new Date();
+      const startDate = formatDateToDD_MM_YYYY(today);
+
+      // Expiration date: extract from current state if available
+      let expiredDate = startDate;
+      if (soat.expirationDate) {
+        const formatted = formatToDD_MM_YYYY(soat.expirationDate);
+        if (formatted) {
+          expiredDate = formatted;
+        }
+      }
+
+      // SOAT-specific metadata
+      const metadata: Record<string, string | number | null | undefined> = {};
+
+      // Use the service to upload the document
+      await uploadDocument({
+        documentTypeId: 3, // SOAT
+        vehicleId: vehicleIdProp,
+        file,
+        startDate,
+        expiredDate,
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+      });
+
+      setMessage("File saved successfully.");
+    } catch (err: any) {
+      setError(
+        err.message ||
+          "Error saving file. Please try again.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {error ? (
+      {soat.error || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+          {soat.error || error}
         </Alert>
       ) : null}
       {message ? (
@@ -158,19 +161,6 @@ export function Soat({ plate }: Readonly<SoatProps>) {
           >
             {statusInfo.message}
           </Typography>
-          {statusInfo.chip && StatusIcon && (
-            <Chip
-              icon={<StatusIcon />}
-              label={statusInfo.chip.label}
-              color={statusInfo.chip.color as "success" | "warning" | "error"}
-              sx={{
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                height: 32,
-                borderRadius: "16px",
-              }}
-            />
-          )}
         </Box>
 
         <Box
@@ -190,7 +180,7 @@ export function Soat({ plate }: Readonly<SoatProps>) {
               color: theme.palette.text.primary,
             }}
           >
-            Información SOAT
+            SOAT Information
           </Typography>
           {infoExpanded ? (
             <ExpandLessIcon
@@ -214,8 +204,8 @@ export function Soat({ plate }: Readonly<SoatProps>) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Número de póliza"
-                value={numeroPoliza}
+                label="Policy Number"
+                value={soat.number}
                 variant="outlined"
                 size="small"
                 disabled
@@ -230,8 +220,8 @@ export function Soat({ plate }: Readonly<SoatProps>) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Fecha de vencimiento"
-                value={fechaVencimiento}
+                label="Expiration Date"
+                value={soat.expirationDate}
                 variant="outlined"
                 size="small"
                 disabled
@@ -273,7 +263,7 @@ export function Soat({ plate }: Readonly<SoatProps>) {
               color: theme.palette.text.primary,
             }}
           >
-            Adjuntar SOAT
+            Attach SOAT
           </Typography>
           {documentsExpanded ? (
             <ExpandLessIcon
@@ -294,13 +284,13 @@ export function Soat({ plate }: Readonly<SoatProps>) {
 
         {documentsExpanded && (
           <DocumentUploadCard
-            instruction={`Adjunte aquí el SOAT vigente del vehículo (Placa: ${plate}).`}
-            hasFile={hasFile}
-            fileName={fileName}
-            fileSizeLabel={fileSizeLabel}
+            instruction={`Attach the SOAT document for the vehicle (License plate: ${plate}).`}
+            hasFile={!!soat.file}
+            fileName={soat.file?.fileName || "soat.pdf"}
+            fileSizeLabel={soat.file?.size ? `${(soat.file.size / 1024).toFixed(1)} KB` : ""}
             onView={() =>
               setMessage(
-                "Vista previa (mock): aquí se abriría el SOAT desde la API.",
+                "Preview (mock): SOAT would open from API here.",
               )
             }
             onSave={handleSaveDocument}
@@ -328,7 +318,7 @@ export function Soat({ plate }: Readonly<SoatProps>) {
               },
             }}
           >
-            Cancelar
+            Cancel
           </Button>
         )}
         <Button
@@ -353,7 +343,7 @@ export function Soat({ plate }: Readonly<SoatProps>) {
             },
           }}
         >
-          {isEditing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
+          {isEditing ? (saving ? "Saving..." : "Save") : "Edit"}
         </Button>
       </Box>
     </Box>

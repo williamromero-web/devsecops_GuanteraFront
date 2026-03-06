@@ -13,12 +13,17 @@ export interface StatusDotProps {
 export function StatusDot({ status, sx, size = 12 }: Readonly<StatusDotProps>) {
   const theme = useTheme();
 
-  if (status === "ok") return null;
+  let bgColor: string;
 
-  const bg =
-    status === "warning"
-      ? theme.palette.warning.main
+  if (typeof status === 'object' && status.color) {
+    bgColor = status.color;
+  } else {
+    if (status === "ok") return null;
+    bgColor = status === "warning" 
+      ? theme.palette.warning.main 
       : theme.palette.error.main;
+  }
+
 
   return (
     <Box
@@ -27,9 +32,12 @@ export function StatusDot({ status, sx, size = 12 }: Readonly<StatusDotProps>) {
         display: "inline-block",
         width: size,
         height: size,
-        borderRadius: "9999px",
-        backgroundColor: bg,
+        // borderRadius: "9999px",
+        borderRadius: "50%",
+        backgroundColor: bgColor,
+        // border: `1px solid ${theme.palette.background.paper}`,
         border: `1px solid ${theme.palette.background.paper}`,
+        boxShadow: bgColor !== 'gray' ? `0 0 4px ${bgColor}66` : 'none',
         ...sx,
       }}
     />

@@ -1,4 +1,4 @@
-export type NormalizedStatus = "ok" | "warning" | "error";
+export type NormalizedStatus = "ok" | "warning" | "error" | "expired" | { color: string };
 
 export interface Essential {
   name?: string | null;
@@ -10,6 +10,11 @@ export interface Vehicle {
   plate?: string | null;
   status?: string | null;
   essentials?: Essential[] | null;
+  existsInRunt?: boolean | null;
+  modules?: {
+    name: string;
+    color: string;
+  }[];
 }
 
 export interface OptionConfigItem {

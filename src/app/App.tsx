@@ -7,12 +7,12 @@ import { palette } from "../shared/theme/palette";
 import tokens from "../shared/theme/tokens.json";
 import { useStandaloneDarkMode } from "../shared/theme/useStandaloneDarkMode";
 
-const STANDALONE = import.meta.env.VITE_STANDALONE !== "false";
+const STANDALONE = import.meta.env.VITE_STANDALONE !== "true";
 
 export function App() {
   const darkMode = useStandaloneDarkMode();
 
-  // Crear tema compatible con TraccarWeb
+  // Create theme compatible with TraccarWeb
   const gloveTheme = createTheme({
     typography: {
       fontFamily: tokens.typography.fontFamily,
@@ -23,17 +23,19 @@ export function App() {
     palette: palette(null, darkMode),
   });
 
-  // En modo embebido (TraccarWeb), Glove intenta usar el ThemeProvider del host
-  // Si no está disponible, crea su propio (fallback para errores)
+  // In embedded mode (TraccarWeb), Glove tries to use the host's ThemeProvider
+  // If not available, creates its own (fallback for errors)
   if (!STANDALONE) {
     return (
       <ThemeProvider theme={gloveTheme}>
-        <AppRoutes />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
       </ThemeProvider>
     );
   }
 
-  // Standalone: crear theme e inyectar
+  // Standalone: create theme and inject
   return (
     <ThemeProvider theme={gloveTheme}>
       <CssBaseline />

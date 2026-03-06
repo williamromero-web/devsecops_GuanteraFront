@@ -77,8 +77,9 @@ export function VehicleCard({
   if (!vehicle) return null;
 
   const plate = vehicle.plate || "Sin placa";
-  const aggregated = getAggregatedStatus(vehicle);
-  const chipVariant = getVehicleStatus(aggregated);
+  const chipVariant = !vehicle.existsInRunt ? "inactive" : getVehicleStatus(getAggregatedStatus(vehicle));
+  // const aggregated = getAggregatedStatus(vehicle);
+  // const chipVariant = getVehicleStatus(aggregated);
 
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -163,19 +164,41 @@ export function VehicleCard({
 
         <Grid container spacing={1.5}>
           {MODULES.map((m) => {
-            const moduleStatus = getModuleStatus(
-              vehicle,
-              m.key,
-              ESSENTIAL_MODULE_MAP,
-            );
+            // const remoteModule = vehicle.modules?.find(
+            //   (rm) => rm.name.toLowerCase() === m.label.toLowerCase()
+            // );
+
+            // const moduleStatus = remoteModule 
+            //   ? { color: remoteModule.color }
+            //   : getModuleStatus(vehicle, m.key, ESSENTIAL_MODULE_MAP);
+
+            let moduleStatus;
+            let disabled = false;
+
+            if (!vehicle.existsInRunt) {
+              moduleStatus = { color: "#9CA3AF" };
+              disabled = true;
+            } else {
+              const remoteModule = vehicle.modules?.find(
+                (rm) => rm.name.toLowerCase() === m.label.toLowerCase()
+              );
+
+              moduleStatus = remoteModule
+                ? { color: remoteModule.color }
+                : getModuleStatus(vehicle, m.key, ESSENTIAL_MODULE_MAP);
+            }
+
             return (
               <Grid key={m.key} size={{ xs: 12, sm: 6 }}>
                 <OptionCard
                   moduleKey={m.key}
                   label={m.label}
                   status={moduleStatus}
+                  disabled={disabled}
                   onClick={
-                    onModuleClick ? () => onModuleClick(m.key) : undefined
+                    !disabled && onModuleClick 
+                      ? () => onModuleClick(m.key) 
+                      : undefined
                   }
                 />
               </Grid>

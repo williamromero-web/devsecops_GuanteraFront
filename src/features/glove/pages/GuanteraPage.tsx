@@ -14,6 +14,7 @@ import { GloveLayout, DisclaimerBanner, VehicleCard } from "../components";
 import { SearchInput } from "../../../shared/ui/molecules/SearchInput";
 import { useDevices } from "../hooks/useDevices";
 import { useGuanteraConfig } from "../providers/GuanteraProvider";
+import { useDebounce } from "../hooks/useDebounce";
 
 const DEFAULT_PAGE_SIZE = 6;
 
@@ -21,8 +22,9 @@ export function GuanteraPage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const { devicesApiConfig } = useGuanteraConfig();
-  const [search, setSearch] = useState("");
+  const [localSearch, setLocalSearch] = useState("");
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(localSearch, 500);
 
   const pageSize = useMemo(
     () => devicesApiConfig?.defaultPageSize ?? DEFAULT_PAGE_SIZE,
@@ -37,7 +39,7 @@ export function GuanteraPage() {
     isInitialLoad,
     error,
     refetch,
-  } = useDevices({ page, pageSize, search });
+  } = useDevices({ page, pageSize, search: debouncedSearch });
 
   const currentPage = Math.min(page, Math.max(1, totalPages));
 
@@ -71,7 +73,7 @@ export function GuanteraPage() {
             whiteSpace: "nowrap",
           }}
         >
-          Total Vehículos
+          Total Dispositivos
         </Typography>
         <Box
           sx={{
@@ -94,16 +96,17 @@ export function GuanteraPage() {
 
       <Box sx={{ width: { xs: "100%", sm: 360 } }}>
         <SearchInput
-          value={search}
+          value={localSearch}
           onChange={(v) => {
-            setSearch(v);
+            setLocalSearch(v);
             setPage(1);
           }}
           onClear={() => {
-            setSearch("");
+            setLocalSearch("");
             setPage(1);
           }}
           placeholder="Buscar por placa..."
+          loading={isLoading && localSearch !== debouncedSearch}
         />
       </Box>
     </Box>
@@ -182,9 +185,9 @@ export function GuanteraPage() {
               ) : (
                 pageItems.map((vehicle) => (
                   <VehicleCard
-                    key={String(vehicle.id ?? vehicle.plate)}
+                    key={vehicle.plate}
                     vehicle={vehicle}
-                    searchTerm={search}
+                    searchTerm={localSearch}
                     onModuleClick={(moduleKey) =>
                       navigate(`/glove/${vehicle.plate}/${moduleKey}`)
                     }

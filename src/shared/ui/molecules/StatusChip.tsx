@@ -13,6 +13,7 @@ export interface StatusChipProps {
 function toStatusIconVariant(variant: VehicleChipVariant) {
   if (variant === "advertencia") return "warning" as const;
   if (variant === "error") return "error" as const;
+  if (variant === "inactive") return "warning";
   return "ok" as const;
 }
 

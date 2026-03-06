@@ -1,7 +1,7 @@
 import type { Theme } from "@mui/material/styles";
 import type { NormalizedStatus } from "../types/domain";
 
-export type VehicleChipVariant = "activo" | "advertencia" | "error";
+export type VehicleChipVariant = "activo" | "advertencia" | "error" | "inactive";
 
 export function getStatusConfig(theme: Theme) {
   return {
@@ -10,6 +10,12 @@ export function getStatusConfig(theme: Theme) {
       color: theme.palette.success.main,
       bg: theme.palette.success.light,
       iconColor: theme.palette.success.main,
+    },
+    inactive: {
+      label: "No registrado en el RUNT",
+      color: theme.palette.text.disabled,
+      bg: theme.palette.action.disabledBackground,
+      iconColor: theme.palette.text.disabled,
     },
     advertencia: {
       label: "Advertencia",
@@ -27,14 +33,20 @@ export function getStatusConfig(theme: Theme) {
 }
 
 export function getOptionCardConfig(theme: Theme, status: NormalizedStatus) {
-  const borderColor =
-    (theme.palette as { border?: { main?: string } })?.border?.main ??
-    theme.palette.divider ??
-    "#D0D0D0";
-  const surfaceAlt =
-    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
-    theme.palette.background.paper ??
-    theme.palette.background.default;
+  const borderColor = (theme.palette as any)?.border?.main ?? theme.palette.divider ?? "#D0D0D0";
+  const surfaceAlt = (theme.palette as any)?.surface?.alt ?? theme.palette.background.paper;
+
+  if (typeof status === 'object' && status.color) {
+    const isGray = status.color === 'gray' || status.color === '#9CA3AF';
+    return {
+      dotColor: status.color,
+      border: isGray ? borderColor : status.color,
+      bg: isGray ? theme.palette.background.paper : `${status.color}1A`, // 10% opacidad
+      iconColor: isGray ? theme.palette.text.disabled : status.color,
+      iconBg: surfaceAlt,
+    } as const;
+  }
+
   if (status === "warning") {
     return {
       dotColor: theme.palette.warning.main,
@@ -55,11 +67,12 @@ export function getOptionCardConfig(theme: Theme, status: NormalizedStatus) {
     } as const;
   }
 
+  // Default / "ok"
   return {
-    dotColor: theme.palette.primary.light,
+    dotColor: theme.palette.success.main,
     border: borderColor,
     bg: theme.palette.background.paper,
-    iconColor: theme.palette.primary.light,
+    iconColor: theme.palette.success.main,
     iconBg: surfaceAlt,
   } as const;
 }
