@@ -41,8 +41,8 @@ export default function GloveModule({
     <div style={{ width: "100%", height: "100%", overflow: "auto" }}>
       <Routes>
         <Route index element={<GuanteraPage />} />
-        <Route path=":plate/:module" element={<GuanteraDetailPage />} />
-        <Route path=":plate/:module/:option" element={<GuanteraOptionPage />} />
+        <Route path=":plate/:vehicleId/:module" element={<GuanteraDetailPage />} />
+        <Route path=":plate/:vehicleId/:module/:option" element={<GuanteraOptionPage />} />
       </Routes>
     </div>
   );
