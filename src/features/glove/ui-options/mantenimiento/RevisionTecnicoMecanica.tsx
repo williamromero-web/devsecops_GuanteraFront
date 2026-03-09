@@ -17,15 +17,21 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { getRTM } from "../../services/rtmService";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { getDocumentTypeByCode } from "../../services";
+import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
 
 export interface RevisionTecnicoMecanicaProps {
   plate: string;
+  vehicleId?: number | string;
 }
 
 export function RevisionTecnicoMecanica({
   plate,
+  vehicleId: vehicleIdProp,
 }: Readonly<RevisionTecnicoMecanicaProps>) {
   const theme = useTheme();
   const borderColor =
@@ -43,18 +49,89 @@ export function RevisionTecnicoMecanica({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: implementacion de api para obtener datos de Revisión Técnico Mecánica (RTM)
-  // CAMBIO REQUERIDO:
-  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/rtm
-  // 2. Usar useEffect para cargar datos al montar componente
-  // 3. Mapear respuesta de API a estados (statusType, fechaUltimaRevision, fechaVencimiento, file)
+  const [statusType, setStatusType] = useState("");
+  const [fechaUltimaRevision, setFechaUltimaRevision] = useState("");
+  const [fechaVencimiento, setFechaVencimiento] = useState("");
 
-  const statusType = "OK";
-  const fechaUltimaRevision = "15/01/2024";
-  const fechaVencimiento = "15/01/2025";
-  const [hasFile, setHasFile] = useState(true);
-  const [fileName, setFileName] = useState("rtm.pdf");
-  const [fileSizeLabel, setFileSizeLabel] = useState("185.3 KB");
+  const [documentTypeId, setDocumentTypeId] = useState<string>("");
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
+
+  const mapStatus = (status: string) => {
+
+    if (status === "Expirado") return "VENCIDO";
+
+    if (status.includes("Próximo")) return "PRÓXIMO A VENCER";
+
+    if (status === "Vigente") return "OK";
+
+    return "";
+  }
+
+  useEffect(() => {
+    async function loadData() {
+
+      try {
+
+        const response = await getRTM(plate);
+
+        const data = response.data;
+
+        setFechaUltimaRevision(data.rtm.lastReviewDate);
+        setFechaVencimiento(data.rtm.expiredDate);
+        setStatusType(mapStatus(data.document.status));
+
+      } catch (err) {
+        console.error(err);
+        setError("No se pudo cargar la información de la RTM");
+      }
+
+    }
+
+  loadData();
+
+  }, [plate]);
+
+  useEffect(() => {
+    let ignore = false;
+    getDocumentTypeByCode("RTM")
+      .then((res) => {
+        if (!ignore) setDocumentTypeId(String(res.data.id));
+      })
+      .catch(() => undefined);
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const { data: vehicleDocument, refetch } = useVehicleDocumentInfo(
+    vehicleIdProp ?? "",
+    documentTypeId,
+  );
+
+  const collectionId: string | null =
+    vehicleDocument?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setDocumentNodes(nodes);
+    } catch {
+      setDocumentNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetchNodes = async () => {
+      await loadNodes(collectionId);
+    };
+    fetchNodes();
+  }, [collectionId]);
+
+  const handleAfterChange = async () => {
+    await refetch();
+    if (collectionId) await loadNodes(collectionId);
+  };
 
   const getStatusInfo = () => {
     if (statusType === "OK") {
@@ -110,13 +187,6 @@ export function RevisionTecnicoMecanica({
     setSaving(false);
     setIsEditing(false);
     setMessage("Información y archivo guardados correctamente (mock).");
-  };
-
-  const handleSaveDocument = async (file: File) => {
-    setHasFile(true);
-    setFileName(file.name);
-    setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-    setMessage("Archivo guardado correctamente (mock).");
   };
 
   return (
@@ -303,18 +373,52 @@ export function RevisionTecnicoMecanica({
         </Box>
 
         {documentsExpanded && (
-          <DocumentUploadCard
-            instruction={`Adjunte aquí el certificado de revisión técnico-mecánica (Placa: ${plate}).`}
-            hasFile={hasFile}
-            fileName={fileName}
-            fileSizeLabel={fileSizeLabel}
-            onView={() =>
-              setMessage(
-                "Vista previa (mock): aquí se abriría el certificado RTM desde la API.",
-              )
-            }
-            onSave={handleSaveDocument}
-          />
+          <>
+            {documentNodes.length > 0 ? (
+              documentNodes.map((node) => (
+                <DocumentUploadCard
+                  key={node.nodeId}
+                  instruction={`Adjunte aquí el certificado de revisión técnico-mecánica (Placa: ${plate}).`}
+                  hasFile
+                  fileName={node.name}
+                  vehicleId={
+                    vehicleIdProp !== undefined
+                      ? String(vehicleIdProp)
+                      : undefined
+                  }
+                  documentTypeId={documentTypeId}
+                  collectionId={collectionId ?? undefined}
+                  nodeId={node.nodeId}
+                  onDelete={handleAfterChange}
+                  onSave={async (file, newCollectionId) => {
+                    setMessage(`${file.name} guardado correctamente.`);
+                    const idToUse = newCollectionId ?? collectionId ?? null;
+                    if (idToUse) await loadNodes(idToUse);
+                    else await refetch();
+                  }}
+                />
+              ))
+            ) : (
+              <DocumentUploadCard
+                instruction={`Adjunte aquí el certificado de revisión técnico-mecánica (Placa: ${plate}).`}
+                hasFile={false}
+                fileName="Sin archivo"
+                vehicleId={
+                  vehicleIdProp !== undefined
+                    ? String(vehicleIdProp)
+                    : undefined
+                }
+                documentTypeId={documentTypeId}
+                collectionId={collectionId ?? undefined}
+                onSave={async (file, newCollectionId) => {
+                  setMessage(`${file.name} guardado correctamente.`);
+                  const idToUse = newCollectionId ?? collectionId ?? null;
+                  if (idToUse) await loadNodes(idToUse);
+                  else await refetch();
+                }}
+              />
+            )}
+          </>
         )}
       </Paper>
 

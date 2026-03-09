@@ -1,16 +1,53 @@
 import { Alert } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { getDocumentTypeByCode } from "../../services";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
 
 export interface ManualVehiculoProps {
   plate: string;
+  vehicleId: Number;
 }
 
-export function ManualVehiculo({ plate }: Readonly<ManualVehiculoProps>) {
+export function ManualVehiculo({ plate, vehicleId }: Readonly<ManualVehiculoProps>) {
   const [message, setMessage] = useState<string | null>(null);
-  const [hasFile, setHasFile] = useState(false);
-  const [fileName, setFileName] = useState("Sin archivo");
-  const [fileSizeLabel, setFileSizeLabel] = useState("0 KB");
+  const [documentTypeId, setDocumentTypeId] = useState("");
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
+
+  useEffect(() => {
+    let ignore = false;
+    getDocumentTypeByCode("MV")
+      .then((res) => { if (!ignore) setDocumentTypeId(String(res.data.id)); })
+      .catch(() => undefined);
+    return () => { ignore = true; };
+  }, []);
+
+  const { data, refetch } = useVehicleDocumentInfo(String(vehicleId), documentTypeId);
+
+  const collectionId = data?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setDocumentNodes(nodes);
+    } catch {
+      setDocumentNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetch = async () => {
+      await loadNodes(collectionId);
+    };
+    fetch();
+  }, [collectionId]);
+
+  const handleAfterChange = async () => {
+    await refetch();
+    if (collectionId) await loadNodes(collectionId);
+  };
 
   const instruction = useMemo(
     () => `Adjunte aquí el manual del vehículo (Placa: ${plate}).`,
@@ -25,19 +62,36 @@ export function ManualVehiculo({ plate }: Readonly<ManualVehiculoProps>) {
         </Alert>
       ) : null}
 
-      <DocumentUploadCard
-        instruction={instruction}
-        hasFile={hasFile}
-        fileName={fileName}
-        fileSizeLabel={fileSizeLabel}
-        onView={() => setMessage("Vista previa ")}
-        onSave={async (file) => {
-          setHasFile(true);
-          setFileName(file.name);
-          setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-          setMessage("Manual del vehículo guardado (mock).");
-        }}
-      />
+      {documentNodes.length > 0 ? (
+        documentNodes.map((node) => (
+          <DocumentUploadCard
+            key={node.nodeId}
+            instruction={instruction}
+            hasFile
+            fileName={node.name}
+            vehicleId={String(vehicleId)}
+            documentTypeId={documentTypeId}
+            nodeId={node.nodeId}
+            onDelete={handleAfterChange}
+            onSave={async (file) => {
+              setMessage(`${file.name} guardado correctamente.`);
+              await handleAfterChange();
+            }}
+          />
+        ))
+      ) : (
+        <DocumentUploadCard
+          instruction={instruction}
+          hasFile={false}
+          fileName="Sin archivo"
+          vehicleId={String(vehicleId)}
+          documentTypeId={documentTypeId}
+          onSave={async (file) => {
+            setMessage(`${file.name} guardado correctamente.`);
+            await handleAfterChange();
+          }}
+        />
+      )}
     </>
   );
 }

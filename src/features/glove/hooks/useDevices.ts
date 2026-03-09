@@ -96,10 +96,6 @@ export function useDevices(params: UseDevicesParams): UseDevicesResult {
     setIsLoading(true);
     setError(null);
 
-    if (isInitialLoad) {
-      setVehicles([]);
-    }
-
     const apiConfig = devicesApiConfigRef.current;
 
     try {
@@ -115,8 +111,7 @@ export function useDevices(params: UseDevicesParams): UseDevicesResult {
 
       // Si esta no es la última request, ignoramos la respuesta
       if (requestId !== requestIdRef.current) return;
-      console.log(response.data);
-      
+
       if (!isMountedRef.current) return;
 
       let mappedVehicles = mapDevicesToVehicles(response.data);
@@ -149,6 +144,7 @@ export function useDevices(params: UseDevicesParams): UseDevicesResult {
             });
         } catch (moduleErr) {
           console.warn("⚠️ No se pudieron cargar los estados de los módulos");
+          mappedVehicles = mappedVehicles.map((v) => ({ ...v, existsInRunt: null }));
         }
       } else {
           mappedVehicles = []; // Si no hay placas de Traccar, no hay nada que buscar en Go

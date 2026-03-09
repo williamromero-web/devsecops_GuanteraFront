@@ -1,19 +1,51 @@
 import { Alert } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { getDocumentTypeByCode } from "../../services";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
 
 export interface FacturaProps {
   plate: string;
+  vehicleId: Number;
 }
 
-/**
-aquí se conectará a `useFactura(plate)` + `uploadDocument({ sourceModuleId: 11 })`.
- */
-export function Factura({ plate }: Readonly<FacturaProps>) {
+export function Factura({ vehicleId, plate }: Readonly<FacturaProps>) {
   const [message, setMessage] = useState<string | null>(null);
-  const [hasFile, setHasFile] = useState(true);
-  const [fileName, setFileName] = useState("factura.pdf");
-  const [fileSizeLabel, setFileSizeLabel] = useState("312.4 KB");
+  const [documentTypeId, setDocumentTypeId] = useState("");
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
+
+  useEffect(() => {
+    getDocumentTypeByCode("FA")
+      .then((res) => setDocumentTypeId(String(res.data.id)))
+      .catch(() => undefined);
+  }, []);
+
+  const { data, refetch } = useVehicleDocumentInfo(String(vehicleId), documentTypeId);
+
+  const collectionId = data?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setDocumentNodes(nodes);
+    } catch {
+      setDocumentNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetch = async () => {
+      await loadNodes(collectionId);
+    };
+    fetch();
+  }, [collectionId]);
+
+  const handleAfterChange = async () => {
+    await refetch();
+    if (collectionId) await loadNodes(collectionId);
+  };
 
   const instruction = useMemo(
     () =>
@@ -29,24 +61,38 @@ export function Factura({ plate }: Readonly<FacturaProps>) {
         </Alert>
       ) : null}
 
-      <DocumentUploadCard
-        instruction={instruction}
-        hasFile={hasFile}
-        fileName={fileName}
-        fileSizeLabel={fileSizeLabel}
-        onView={() =>
-          setMessage(
-            "Vista previa (mock): aquí se abriría el archivo desde la API.",
-          )
-        }
-        onSave={async (file) => {
-          // Mock: simular guardado y dejar el archivo como el actual
-          setHasFile(true);
-          setFileName(file.name);
-          setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-          setMessage("Factura guardada (mock).");
-        }}
-      />
+      {documentNodes.length > 0 ? (
+        documentNodes.map((node) => (
+          <DocumentUploadCard
+            key={node.nodeId}
+            instruction={instruction}
+            hasFile
+            fileName={node.name}
+            vehicleId={String(vehicleId)}
+            documentTypeId={documentTypeId}
+            collectionId={collectionId ?? undefined}
+            nodeId={node.nodeId}
+            onDelete={handleAfterChange}
+            onSave={async (file) => {
+              setMessage(`${file.name} guardado correctamente.`);
+              await handleAfterChange();
+            }}
+          />
+        ))
+      ) : (
+        <DocumentUploadCard
+          instruction={instruction}
+          hasFile={false}
+          fileName="Sin archivo"
+          collectionId={collectionId ?? undefined}  
+          vehicleId={String(vehicleId)}
+          documentTypeId={documentTypeId}
+          onSave={async (file) => {
+            setMessage(`${file.name} guardado correctamente.`);
+            await handleAfterChange();
+          }}
+        />
+      )}
     </>
   );
 }

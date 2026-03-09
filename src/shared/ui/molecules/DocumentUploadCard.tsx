@@ -1,9 +1,14 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
 import {
   Alert,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   Paper,
   Typography,
@@ -15,7 +20,10 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
+import { httpDelete } from "../../../features/glove/lib/httpClient";
+import { uploadDocument } from "../../../features/glove/services";
 
 export interface DocumentUploadCardProps {
   instruction: string;
@@ -28,14 +36,31 @@ export interface DocumentUploadCardProps {
   accept?: string;
   /** Límite en bytes (default 5MB). */
   maxBytes?: number;
+  /** ID del tipo de documento. Si se provee junto con vehicleId, el componente sube el archivo automáticamente. */
+  documentTypeId?: string;
+  /** ID del vehículo al que pertenece el documento. */
+  vehicleId?: string;
+  /** Fecha de inicio del documento en formato DD-MM-YYYY (requerido por el servicio de upload). */
+  startDate?: string;
+  /** Fecha de vencimiento del documento en formato DD-MM-YYYY (requerido por el servicio de upload). */
+  expiredDate?: string;
+  /** Metadata adicional enviada al servicio de upload. */
+  metadata?: Record<string, string | number | null | undefined>;
+  /** ID de colección existente para agregar el archivo a una colección ya creada. */
+  collectionId?: string;
 
   onView?: () => void;
 
+  /** ID del nodo del documento para eliminarlo. Si se provee, se muestra el botón de eliminar. */
+  nodeId?: string;
+  /** Callback invocado tras una eliminación exitosa. */
+  onDelete?: () => Promise<void> | void;
+
   /**
-   * Callback cuando se guarda. Se invoca con el archivo seleccionado.
-   * En Fase 8 se conectará a uploadDocument + refetch.
+   * Callback invocado tras un guardado exitoso (sea upload o delegación).
+   * Recibe el archivo y, si el backend devolvió un collectionId nuevo, también lo recibe.
    */
-  onSave?: (file: File) => Promise<void> | void;
+  onSave?: (file: File, collectionId?: string) => Promise<void> | void;
   saveLabel?: string;
 
   updateLabel?: string;
@@ -56,7 +81,15 @@ export function DocumentUploadCard({
   hasFile,
   accept = "application/pdf,image/*",
   maxBytes = 5 * 1024 * 1024,
+  documentTypeId,
+  vehicleId,
+  startDate,
+  expiredDate,
+  metadata,
+  collectionId,
   onView,
+  nodeId,
+  onDelete,
   onSave,
   saveLabel = "Guardar",
   updateLabel = "Actualizar",
@@ -68,7 +101,53 @@ export function DocumentUploadCard({
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [savedFileUrl, setSavedFileUrl] = useState<string | null>(null);
+  const savedFileUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedFileUrlRef.current) URL.revokeObjectURL(savedFileUrlRef.current);
+    };
+  }, []);
+
+  const handleDelete = async () => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+    if (!nodeId) return;
+    setConfirmDeleteOpen(false);
+    try {
+      setDeleting(true);
+      setLocalError(null);
+      await httpDelete(`/vehicledocument/nodes/${nodeId}`, {
+        baseUrl,
+      });
+      if (onDelete) {
+        await onDelete();
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "No se pudo eliminar el documento";
+      setLocalError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleView = () => {
+    if (onView) {
+      onView();
+      return;
+    }
+    if (selectedFile) {
+      window.open(URL.createObjectURL(selectedFile), "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (savedFileUrl) {
+      window.open(savedFileUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   const effectiveName = useMemo(() => {
     if (selectedFile) return selectedFile.name;
@@ -92,14 +171,39 @@ export function DocumentUploadCard({
   };
 
   const handleSave = async () => {
-    if (!selectedFile || !onSave) {
+    if (!selectedFile) {
       setIsEditing(false);
       return;
     }
     try {
       setSaving(true);
       setLocalError(null);
-      await onSave(selectedFile);
+
+      let returnedCollectionId: string | undefined;
+      if (documentTypeId && vehicleId) {
+        const result = await uploadDocument({
+          documentTypeId,
+          vehicleId,
+          file: selectedFile,
+          startDate: startDate ?? "",
+          expiredDate: expiredDate ?? "",
+          metadata,
+          collectionId,
+        });
+        returnedCollectionId = result ?? undefined;
+      }
+
+      if (onSave) {
+        await onSave(selectedFile, returnedCollectionId);
+      }
+
+      if (!onView) {
+        if (savedFileUrlRef.current) URL.revokeObjectURL(savedFileUrlRef.current);
+        const url = URL.createObjectURL(selectedFile);
+        savedFileUrlRef.current = url;
+        setSavedFileUrl(url);
+      }
+      
       setIsEditing(false);
       setSelectedFile(null);
     } catch (e) {
@@ -113,6 +217,28 @@ export function DocumentUploadCard({
 
   return (
     <Box sx={sx}>
+      <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Está seguro de que desea eliminar este documento? Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteOpen(false)} sx={{ textTransform: "none" }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            variant="contained"
+            sx={{ textTransform: "none" }}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {localError ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {localError}
@@ -211,7 +337,7 @@ export function DocumentUploadCard({
                 <IconButton
                   size="small"
                   onClick={handleSave}
-                  disabled={!selectedFile || saving || !onSave}
+                  disabled={!selectedFile || saving || (!onSave && !documentTypeId)}
                   sx={{
                     color: theme.palette.text.secondary,
                     "&:hover": { color: theme.palette.success.main },
@@ -226,7 +352,7 @@ export function DocumentUploadCard({
                 <IconButton
                   size="small"
                   disabled={!hasFile || !onView}
-                  onClick={onView}
+                  onClick={handleView}
                   sx={{
                     color: theme.palette.text.secondary,
                     "&:hover": { color: theme.palette.primary.light },
@@ -235,6 +361,20 @@ export function DocumentUploadCard({
                 >
                   <VisibilityIcon fontSize="small" />
                 </IconButton>
+                {nodeId ? (
+                  <IconButton
+                    size="small"
+                    onClick={() => setConfirmDeleteOpen(true)}
+                    disabled={deleting}
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      "&:hover": { color: theme.palette.error.main },
+                    }}
+                    aria-label="Eliminar"
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                ) : null}
                 <IconButton
                   size="small"
                   onClick={() => setIsEditing(true)}
@@ -254,6 +394,7 @@ export function DocumentUploadCard({
         <input
           ref={inputRef}
           type="file"
+          multiple
           accept={accept}
           style={{ display: "none" }}
           onChange={(e) => {
@@ -305,7 +446,7 @@ export function DocumentUploadCard({
               onClick={handleSave}
               size="small"
               variant="contained"
-              disabled={!selectedFile || saving || !onSave}
+              disabled={!selectedFile || saving || (!onSave && !documentTypeId)}
               startIcon={<SaveIcon />}
               sx={{ textTransform: "none" }}
             >

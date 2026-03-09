@@ -77,10 +77,8 @@ export function VehicleCard({
   if (!vehicle) return null;
 
   const plate = vehicle.plate || "Sin placa";
-  const chipVariant = !vehicle.existsInRunt ? "inactive" : getVehicleStatus(getAggregatedStatus(vehicle));
-  // const aggregated = getAggregatedStatus(vehicle);
-  // const chipVariant = getVehicleStatus(aggregated);
-
+  const chipVariant = vehicle.existsInRunt === false ? "inactive" : getVehicleStatus(getAggregatedStatus(vehicle));
+  
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
@@ -179,9 +177,13 @@ export function VehicleCard({
               moduleStatus = { color: "#9CA3AF" };
               disabled = true;
             } else {
-              const remoteModule = vehicle.modules?.find(
-                (rm) => rm.name.toLowerCase() === m.label.toLowerCase()
-              );
+              const lowerLabel = m.label.toLowerCase();
+              const remoteModule =
+                vehicle.modules?.find(
+                  (rm) => rm.name.toLowerCase() === lowerLabel && rm.color !== "#9CA3AF" && rm.color !== "gray"
+                ) ?? vehicle.modules?.find(
+                  (rm) => rm.name.toLowerCase() === lowerLabel
+                );
 
               moduleStatus = remoteModule
                 ? { color: remoteModule.color }

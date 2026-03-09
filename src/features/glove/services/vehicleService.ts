@@ -19,7 +19,7 @@ export interface VehicleStatus {
 }
 
 export interface ModuleDetailItem {
-  name: string;
+  optionKey: string;
   status: "active" | "warning" | "expired";
   color: string;
   expirationDate?: string;
@@ -61,17 +61,16 @@ export async function fetchVehiclesModules(
     }));
   } catch (error) {
     console.error("Error fetching vehicle modules:", error);
-    return [];
+    throw error;
   }
 }
 
 export async function getModuleDetail(
-  plate: string,
+  vehicleId: string,
   moduleKey: string
 ): Promise<ModuleDetailResponse> {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const url = `${baseUrl}/vehicle/modules/${plate}/${moduleKey}`;
-
+  const url = `${baseUrl}/vehicledocument/${vehicleId}/modules/${moduleKey}`;
   try {
     const response = await fetch(url, {
       method: "GET",
@@ -81,7 +80,9 @@ export async function getModuleDetail(
       throw new Error(`Failed to fetch module detail: HTTP ${response.status}`);
     }
 
-    return await response.json();
+    const json = await response.json();
+    
+    return json.data;
   } catch (error) {
     console.error("Error fetching module detail:", error);
     throw error;

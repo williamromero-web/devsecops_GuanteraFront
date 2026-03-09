@@ -5,15 +5,20 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
+import { getDocumentTypeByCode } from "../../services";
 
 export interface GuiaControlMantenimientoProps {
   plate: string;
+  vehicleId?: number | string;
 }
 
 export function GuiaControlMantenimiento({
   plate,
+  vehicleId: vehicleIdProp,
 }: Readonly<GuiaControlMantenimientoProps>) {
   const theme = useTheme();
   const borderColor =
@@ -30,9 +35,49 @@ export function GuiaControlMantenimiento({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [hasFile, setHasFile] = useState(false);
-  const [fileName, setFileName] = useState("Sin archivo");
-  const [fileSizeLabel, setFileSizeLabel] = useState("0 KB");
+  const [documentTypeId, setDocumentTypeId] = useState<string>("");
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
+
+  useEffect(() => {
+    let ignore = false;
+    getDocumentTypeByCode("GM")
+      .then((res) => {
+        if (!ignore) setDocumentTypeId(String(res.data.id));
+      })
+      .catch(() => undefined);
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const { data: vehicleDocument, refetch } = useVehicleDocumentInfo(
+    vehicleIdProp ?? "",
+    documentTypeId,
+  );
+
+  const collectionId: string | null = vehicleDocument?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setDocumentNodes(nodes);
+    } catch {
+      setDocumentNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetchNodes = async () => {
+      await loadNodes(collectionId);
+    };
+    fetchNodes();
+  }, [collectionId]);
+
+  const handleAfterChange = async () => {
+    await refetch();
+    if (collectionId) await loadNodes(collectionId);
+  };
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -47,14 +92,14 @@ export function GuiaControlMantenimiento({
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSaving(false);
     setIsEditing(false);
-    setMessage("Archivo guardado correctamente (mock).");
-  };
+  //   setMessage("Archivo guardado correctamente (mock).");
+  // };
 
-  const handleSaveDocument = async (file: File) => {
-    setHasFile(true);
-    setFileName(file.name);
-    setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-    setMessage("Archivo guardado correctamente (mock).");
+  // const handleSaveDocument = async (file: File) => {
+  //   setHasFile(true);
+  //   setFileName(file.name);
+  //   setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
+  //   setMessage("Archivo guardado correctamente (mock).");
   };
 
   return (
@@ -116,18 +161,44 @@ export function GuiaControlMantenimiento({
         </Box>
 
         {documentsExpanded && (
-          <DocumentUploadCard
-            instruction={`Adjunte aquí la guía de control de mantenimiento del vehículo (Placa: ${plate}).`}
-            hasFile={hasFile}
-            fileName={fileName}
-            fileSizeLabel={fileSizeLabel}
-            onView={() =>
-              setMessage(
-                "Vista previa (mock): aquí se abriría la guía desde la API.",
-              )
-            }
-            onSave={handleSaveDocument}
-          />
+          <>
+            {documentNodes.length > 0 ? (
+              documentNodes.map((node) => (
+                <DocumentUploadCard
+                  key={node.nodeId}
+                  instruction={`Adjunte aquí la guía de control de mantenimiento del vehículo (Placa: ${plate}).`}
+                  hasFile
+                  fileName={node.name}
+                  vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
+                  documentTypeId={documentTypeId}
+                  collectionId={collectionId ?? undefined}
+                  nodeId={node.nodeId}
+                  onDelete={handleAfterChange}
+                  onSave={async (file, newCollectionId) => {
+                    setMessage(`${file.name} guardado correctamente.`);
+                    const idToUse = newCollectionId ?? collectionId ?? null;
+                    if (idToUse) await loadNodes(idToUse);
+                    else await refetch();
+                  }}
+                />
+              ))
+            ) : (
+              <DocumentUploadCard
+                instruction={`Adjunte aquí la guía de control de mantenimiento del vehículo (Placa: ${plate}).`}
+                hasFile={false}
+                fileName="Sin archivo"
+                vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
+                documentTypeId={documentTypeId}
+                collectionId={collectionId ?? undefined}
+                onSave={async (file, newCollectionId) => {
+                  setMessage(`${file.name} guardado correctamente.`);
+                  const idToUse = newCollectionId ?? collectionId ?? null;
+                  if (idToUse) await loadNodes(idToUse);
+                  else await refetch();
+                }}
+              />
+            )}
+          </>
         )}
       </Paper>
 

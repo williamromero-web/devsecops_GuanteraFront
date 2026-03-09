@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useState } from "react";
+import { useRoadTax } from "../../hooks/useRoadTax";
 
 export interface ImpuestoVehicularProps {
   plate: string;
@@ -18,13 +19,7 @@ export function ImpuestoVehicular({
     "#D0D0D0";
   const [optionInfoExpanded, setOptionInfoExpanded] = useState(true);
 
-  const ciudadMatricula = "Bogotá D.C.";
-  const fechaLimitePagoDescuento = "15/03/2025";
-  const fechaLimitePago = "31/03/2025";
-  const pagoExtemporaneoDesde = "01/04/2025";
-  const primeraFechaDescuento = "28/02/2025";
-  const segundaFechaDescuento = "10/03/2025";
-  const terceraFechaDescuento = "20/03/2025";
+  const { roadTax } = useRoadTax(_plate);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -79,7 +74,7 @@ export function ImpuestoVehicular({
               <TextField
                 fullWidth
                 label="Ciudad de matrícula"
-                value={ciudadMatricula}
+                value={roadTax?.cityRegistration ?? ""}
                 variant="outlined"
                 size="small"
                 disabled
@@ -95,7 +90,7 @@ export function ImpuestoVehicular({
               <TextField
                 fullWidth
                 label="Fecha límite pago con descuento"
-                value={fechaLimitePagoDescuento}
+                value={roadTax?.discountPaymentDeadline ?? ""}
                 variant="outlined"
                 size="small"
                 disabled
@@ -111,7 +106,7 @@ export function ImpuestoVehicular({
               <TextField
                 fullWidth
                 label="Fecha límite pago"
-                value={fechaLimitePago}
+                value={roadTax?.paymentDeadline ?? ""}
                 variant="outlined"
                 size="small"
                 disabled
@@ -127,55 +122,7 @@ export function ImpuestoVehicular({
               <TextField
                 fullWidth
                 label="Pago extemporáneo a partir de"
-                value={pagoExtemporaneoDesde}
-                variant="outlined"
-                size="small"
-                disabled
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Primera fecha límite descuento"
-                value={primeraFechaDescuento}
-                variant="outlined"
-                size="small"
-                disabled
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Segunda fecha límite descuento"
-                value={segundaFechaDescuento}
-                variant="outlined"
-                size="small"
-                disabled
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Tercera fecha límite descuento"
-                value={terceraFechaDescuento}
+                value={roadTax?.untimelyPayment ?? ""}
                 variant="outlined"
                 size="small"
                 disabled

@@ -3,7 +3,7 @@ import { Grid } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import MenuBookOutlined from "@mui/icons-material/MenuBookOutlined";
-import type { OptionConfigItem } from "../types/domain";
+import type { NormalizedStatus, OptionConfigItem } from "../types/domain";
 import { OptionCard } from "../../../shared/ui/molecules/OptionCard";
 // import { getOptionStatus } from "../lib/status";
 import type { ModuleDetailResponse } from "../services";
@@ -22,37 +22,51 @@ function getOptionIcon(optionKey: string, theme: Theme) {
   return <DescriptionOutlined sx={iconSx} />;
 }
 
+function mapColorToStatus(color: string): NormalizedStatus {
+
+  switch (color) {
+    case "#FF4444":
+      return "error"      // expirado
+
+    case "#FF8844":
+      return "warning"    // 3 dias
+
+    case "#FFBB44":
+      return "warning"    // 8 dias
+
+    case "#FFDD44":
+      return "warning"    // 15 dias
+
+    case "green":
+      return "ok"
+
+    case "#9CA3AF":
+      return { color: "#9CA3AF" } // gris
+
+    default:
+      return "ok"
+  }
+}
+
 export function OptionsGrid({ options, moduleDetail, onSelect, sx }: Readonly<OptionsGridProps>) {
   console.log("moduleDetail", moduleDetail); 
-  debugger;
   const theme = useTheme();
 
   return (
     <Grid container spacing={2} sx={sx}>
       {options.map((opt) => {
-        // const status = vehicle ? getOptionStatus(vehicle, opt) : "ok";
-        debugger;
-        const getStatus = (optionKey: string) => {
-          const found = moduleDetail?.items.find(
-            (i) => i.name === optionKey
-          );
 
-          if (!found) return "ok";
+        const item = moduleDetail?.items?.find(
+          (i) => i.optionKey === opt.key
+        );
 
-          switch (found.status) {
-            case "expired":
-              return "error";
-            case "warning":
-              return "warning";
-            default:
-              return "ok";
-          }
-        };
+        const status = item ? mapColorToStatus(item.color) : "ok";
+        
         return (
           <Grid key={opt.key} size={{ xs: 12, sm: 6, md: 4 }}>
             <OptionCard
               label={opt.label}
-              status={getStatus(opt.key)}
+              status={status}
               disabled={!!opt.disabled}
               onClick={() => onSelect(opt.key)}
               icon={getOptionIcon(opt.key, theme)}

@@ -18,12 +18,13 @@ import { ModuleIcon } from "../../../shared/ui/atoms/ModuleIcon";
 import { useModuleDetail } from "../hooks/useModuleDetail";
 
 export function GuanteraDetailPage() {
-  const { plate, module } = useParams<{ plate: string; module: string }>();
-  const { data, loading } = useModuleDetail(plate!, module!);
+  const { plate, vehicleId, module } = useParams<{ plate: string; vehicleId: string; module: string }>();
+  const { data, loading } = useModuleDetail(vehicleId!, module!);
   const navigate = useNavigate();
   const theme = useTheme();
 
-  console.log("data module detail", data);
+  console.log("vehicleId", vehicleId);
+  console.log("data detail", data);
   
   if (loading) return <div>Cargando...</div>;
 
@@ -80,7 +81,7 @@ export function GuanteraDetailPage() {
           // vehicle={vehicle}
           moduleDetail={data}
           onSelect={(optionKey) =>
-            navigate(`/glove/${plate}/${moduleKey}/${optionKey}`)
+            navigate(`/glove/${plate}/${vehicleId}/${moduleKey}/${optionKey}`)
           }
         />
       </Box>

@@ -189,7 +189,7 @@ export function GuanteraPage() {
                     vehicle={vehicle}
                     searchTerm={localSearch}
                     onModuleClick={(moduleKey) =>
-                      navigate(`/glove/${vehicle.plate}/${moduleKey}`)
+                      navigate(`/glove/${vehicle.plate}/${vehicle.id?.toString()}/${moduleKey}`)
                     }
                   />
                 ))

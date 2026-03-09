@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getModuleDetail, type ModuleDetailResponse, } from "../services/vehicleService";
 
 export function useModuleDetail(
-  plate: string,
+  vehicleId: string,
   moduleKey: string
 ) {
   const [data, setData] =
@@ -12,14 +12,13 @@ export function useModuleDetail(
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!plate || !moduleKey) return;
-
+    if (!vehicleId || !moduleKey) return;
     setLoading(true);
 
-    getModuleDetail(plate, moduleKey)
+    getModuleDetail(vehicleId, moduleKey)
       .then(setData)
       .finally(() => setLoading(false));
-  }, [plate, moduleKey]);
+  }, [vehicleId, moduleKey]);
 
   return { data, loading };
 }

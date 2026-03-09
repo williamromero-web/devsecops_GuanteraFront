@@ -13,8 +13,8 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/glove" replace />} />
       <Route path="/glove" element={<GuanteraPage />} />
-      <Route path="/glove/:plate/:module" element={<GuanteraDetailPage />} />
-      <Route path="/glove/:plate/:module/:option" element={<GuanteraOptionPage />} />
+      <Route path="/glove/:plate/:vehicleId/:module" element={<GuanteraDetailPage />} />
+      <Route path="/glove/:plate/:vehicleId/:module/:option" element={<GuanteraOptionPage />} />
     </Routes>
   );
 }

@@ -16,7 +16,11 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { formatToDD_MM_YYYY, getDocumentTypeByCode, uploadOtrosDocumentos } from "../../services";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
+import { httpDelete } from "../../lib/httpClient";
 
 interface Document {
   id: string | null;
@@ -30,10 +34,12 @@ interface Document {
 
 export interface OtrosDocumentosProps {
   plate: string;
+  vehicleId: Number;
 }
 
 export function OtrosDocumentos({
   plate: _plate,
+  vehicleId: _vehicleId,
 }: Readonly<OtrosDocumentosProps>) {
   const theme = useTheme();
   const borderColor =
@@ -41,10 +47,50 @@ export function OtrosDocumentos({
     theme.palette.divider ??
     "#D0D0D0";
 
+  const [documentTypeId, setDocumentTypeId] = useState<number | null>(null);
+  const [existingNodes, setExistingNodes] = useState<VehicleDocumentNode[]>([]);
+
+  useEffect(() => {
+    getDocumentTypeByCode("OT")
+      .then((res) => setDocumentTypeId(res.data.id))
+      .catch(() => undefined);
+  }, []);
+
+  const { data: docInfo, refetch } = useVehicleDocumentInfo(String(_vehicleId), documentTypeId ?? "");
+  const collectionId = docInfo?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setExistingNodes(nodes);
+    } catch {
+      setExistingNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetchNodes = async () => {
+      await loadNodes(collectionId);
+    };
+    fetchNodes();
+  }, [collectionId]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleRemoveNode = async (nodeId: string) => {
+    const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+    try {
+      await httpDelete(`/vehicledocument/nodes/${nodeId}`, { baseUrl });
+      setExistingNodes((prev) => prev.filter((n) => n.nodeId !== nodeId));
+    } catch {
+      setError("No se pudo eliminar el archivo.");
+    }
+  };
 
   const [documentos, setDocumentos] = useState<Document[]>([
     {
@@ -124,6 +170,7 @@ export function OtrosDocumentos({
   const handleCancel = () => {
     setIsEditing(false);
     setError(null);
+    setSubmitted(false);
     setMessage(null);
   };
 
@@ -131,6 +178,7 @@ export function OtrosDocumentos({
     setSaving(true);
     setError(null);
     setMessage(null);
+    setSubmitted(true);
 
     for (const doc of documentos) {
       if (!doc.nombre || !doc.entidad || !doc.fechaExpedicion) {
@@ -140,17 +188,36 @@ export function OtrosDocumentos({
       }
     }
 
-    // TODO: implementacion de api para guardar otros documentos
-    // CAMBIO REQUERIDO:
-    // 1. Reemplazar setTimeout mock con llamada POST a API: /simon-glove/private/vehicles/{plate}/otros-documentos
-    // 2. Incluir FormData con archivos: new FormData()
-    // 3. Manejar respuesta de API y asignar IDs retornados a documentos
-    // 4. Actualizar estado con respuesta del servidor
+    if (!documentTypeId) {
+      setError("No se pudo obtener el tipo de documento. Intenta de nuevo.");
+      setSaving(false);
+      return;
+    }
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Documentos guardados correctamente.");
+    try {
+      await uploadOtrosDocumentos({
+        documentTypeId,
+        vehicleId: String(_vehicleId),
+        documents: documentos.map((doc) => ({
+          files: doc.archivos,
+          name: doc.nombre,
+          entity: doc.entidad,
+          startDate: formatToDD_MM_YYYY(doc.fechaExpedicion) ?? doc.fechaExpedicion,
+          expiredDate: doc.fechaVencimiento
+            ? (formatToDD_MM_YYYY(doc.fechaVencimiento) ?? doc.fechaVencimiento)
+            : undefined,
+          description: doc.observaciones || undefined,
+        })),
+      });
+      setIsEditing(false);
+      setMessage("Documentos guardados correctamente.");
+      await refetch();
+      if (collectionId) await loadNodes(collectionId);
+    } catch {
+      setError("Error al guardar los documentos. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -219,6 +286,7 @@ export function OtrosDocumentos({
                 size="small"
                 required
                 disabled={!isEditing}
+                error={submitted && !doc.nombre}
                 onChange={(e) =>
                   handleInputChange(docIndex, "nombre", e.target.value)
                 }
@@ -239,6 +307,7 @@ export function OtrosDocumentos({
                 size="small"
                 required
                 disabled={!isEditing}
+                error={submitted && !doc.entidad}
                 onChange={(e) =>
                   handleInputChange(docIndex, "entidad", e.target.value)
                 }
@@ -260,6 +329,7 @@ export function OtrosDocumentos({
                 size="small"
                 required
                 disabled={!isEditing}
+                error={submitted && !doc.fechaExpedicion}
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -336,6 +406,52 @@ export function OtrosDocumentos({
             >
               Archivos
             </Typography>
+
+            {docIndex === 0 && existingNodes.map((node) => (
+              <Box
+                key={node.nodeId}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 1.25,
+                  borderRadius: 1,
+                  border: `1px solid ${borderColor}`,
+                  bgcolor: theme.palette.action.hover,
+                  mb: 1,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                  <DescriptionIcon
+                    sx={{ color: theme.palette.text.secondary, fontSize: "1.25rem" }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: "0.95rem",
+                      fontWeight: 500,
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {node.name}
+                  </Typography>
+                </Box>
+                {isEditing && (
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveNode(node.nodeId)}
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      "&:hover": {
+                        bgcolor: theme.palette.error.light,
+                        color: theme.palette.error.main,
+                      },
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
 
             {isEditing && (
               <>
@@ -445,7 +561,7 @@ export function OtrosDocumentos({
               </Box>
             )}
 
-            {doc.archivos.length === 0 && (
+            {doc.archivos.length === 0 && !(docIndex === 0 && existingNodes.length > 0) && (
               <Typography
                 sx={{
                   fontSize: "0.9rem",

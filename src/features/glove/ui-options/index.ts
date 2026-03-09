@@ -29,7 +29,7 @@ import {
 
 export const OPTION_COMPONENTS: Record<
   string,
-  ComponentType<{ plate: string }>
+  ComponentType<{ vehicleId: number; plate: string }>
 > = {
   // Propiedad
   "tarjeta-propiedad": TarjetaPropiedad,

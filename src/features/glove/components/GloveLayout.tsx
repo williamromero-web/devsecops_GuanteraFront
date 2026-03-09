@@ -23,7 +23,7 @@ export function GloveLayout({
     (theme.palette as { alwaysDark?: { main?: string } })?.alwaysDark?.main ??
     paperBg;
   const headerBg = isDark ? alwaysDarkMain : paperBg;
-  const contentBg = isDark ? "transparent" : paperBg;
+  const contentBg = isDark ? alwaysDarkMain : paperBg;
   const primaryLight = theme.palette?.primary?.light ?? "#1976d2";
   const textPrimary = theme.palette?.text?.primary ?? "#000000";
 

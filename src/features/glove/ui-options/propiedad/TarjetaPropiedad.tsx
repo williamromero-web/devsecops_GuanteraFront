@@ -13,14 +13,17 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { getPropertyCard, getVehicleDocumentNodes, updatePropertyCardNumber, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { getDocumentTypeByCode, uploadPropertyCardDocuments } from "../../services";
 
 export interface TarjetaPropiedadProps {
+  vehicleId: number;
   plate: string;
 }
 
-export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
+export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedadProps>) {
   const theme = useTheme();
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -36,25 +39,80 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [originalPropertyNumber, setOriginalPropertyNumber] = useState("");
 
-  // TODO: implementacion de api para obtener datos de tarjeta de propiedad
-  // CAMBIO REQUERIDO:
-  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/tarjeta-propiedad
-  // 2. Usar useEffect para cargar datos al montar componente
-  // 3. Actualizar estados con respuesta del servidor
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
+  const [nodeFiles, setNodeFiles] = useState<Record<string, { hasFile: boolean; fileName: string; fileSizeLabel: string }>>({});
+  const [propertyId, setPropertyId] = useState(0);
+  const [propertyNumber, setPropertyNumber] = useState("");
+  const [service, setService] = useState("");
+  const [vehTypeName, setVehTypeName] = useState("");
+  const [fileChanged, setFileChanged] = useState(false);
+  const [documentCollectionId, setDocumentCollectionId] = useState<string | null>(null);
+  const [documentTypeId, setDocumentTypeId] = useState("");
+  const [frontFile, setFrontFile] = useState<File | null>(null);
+  const [backFile, setBackFile] = useState<File | null>(null);
+  const loadedRef = useRef(false);
 
-  const [propertyNumber, setPropertyNumber] = useState("ABC123456");
-  const service = "Particular";
-  const vehTypeName = "Automóvil";
-  const [hasFile, setHasFile] = useState(true);
-  const [fileName, setFileName] = useState("tarjeta-propiedad.pdf");
-  const [fileSizeLabel, setFileSizeLabel] = useState("148.2 KB");
+  const loadNodes = async (collectionId: string) => {
+    const nodes = await getVehicleDocumentNodes(collectionId);
+    setDocumentNodes(nodes);
+    const initFiles: Record<string, { hasFile: boolean; fileName: string; fileSizeLabel: string }> = {};
+    for (const node of nodes) {
+      initFiles[node.nodeId] = { hasFile: true, fileName: node.name, fileSizeLabel: "" };
+    }
+    setNodeFiles(initFiles);
+  };
 
-  const currentNumber = "ABC123456";
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
+    async function loadPropertyCard() {
+      try {
+        const [response, docTypeRes] = await Promise.all([
+          getPropertyCard(plate),
+          getDocumentTypeByCode("TC"),
+        ]);
+
+        console.log("docTypeRes.data.id: ", docTypeRes.data.id);
+        
+        setDocumentTypeId(String(docTypeRes.data.id));
+
+        const property = response.data.propertyCard;
+        const document = response.data.document;
+
+        const cardNumber = (property.cardNumber ?? "").trim();
+        setPropertyId(property.id);
+        setPropertyNumber(cardNumber);
+        setOriginalPropertyNumber(cardNumber);
+        setService(property.service ?? "");
+        setVehTypeName(property.vehTypeName?.toLowerCase() ?? "");
+
+        if (document.documentCollectionId) {
+          setDocumentCollectionId(document.documentCollectionId);
+          try {
+            await loadNodes(document.documentCollectionId);
+          } catch {
+            // Si falla, la sección de documentos no muestra tarjetas
+            console.error("No se pudieron cargar los nodos de documentos");
+          }
+        }
+
+      } catch {
+        setError("No se pudo cargar la tarjeta de propiedad.");
+      }
+    }
+
+    loadPropertyCard();
+  }, [plate, vehicleId]);
 
   const handleCancel = () => {
     setIsEditing(false);
-    setPropertyNumber(currentNumber);
+    setPropertyNumber(originalPropertyNumber);
+    setFileChanged(false);
+    setFrontFile(null);
+    setBackFile(null);
     setError(null);
     setMessage(null);
   };
@@ -64,31 +122,49 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
     setError(null);
     setMessage(null);
 
-    // TODO: implementacion de api para actualizar tarjeta de propiedad
-    // CAMBIO REQUERIDO:
-    // 1. Reemplazar setTimeout mock con llamada PUT a API: /simon-glove/private/vehicles/{plate}/tarjeta-propiedad
-    // 2. Incluir propertyNumber en el body de la solicitud
-    // 3. Manejar respuesta de API y validar éxito
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Información y archivo guardados correctamente (mock).");
+    try {
+      await updatePropertyCardNumber(propertyId, propertyNumber);
+      setMessage("Número de tarjeta de propiedad actualizado correctamente.");
+      setIsEditing(false);
+    } catch {
+      setError("No se pudo actualizar el número de tarjeta.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSaveDocument = async (file: File) => {
-    // TODO: implementacion de api para guardar documento tarjeta de propiedad
-    // CAMBIO REQUERIDO:
-    // 1. Reemplazar mock con llamada POST a API: /simon-glove/private/vehicles/{plate}/tarjeta-propiedad/upload
-    // 2. Usar FormData para enviar archivo
-    // 3. Validar tipo de archivo (PDF)
-    // 4. Actualizar UI con datos del archivo guardado
+  const handleSaveFrontNode = async (file: File) => {
+    setFrontFile(file);
+    setNodeFiles((prev) => ({
+      ...prev,
+      ...(documentNodes[0] ? { [documentNodes[0].nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` } } : {}),
+    }));
+    setFileChanged(true);
+    try {
+      console.log("document type tc: ", documentTypeId); //TODO parece que esto esta pasando primero que el useEffect que lo carga, revisar
+      
+      await uploadPropertyCardDocuments({ documentTypeId, vehicleId: String(vehicleId), frontFile: file, collectionId: documentCollectionId ?? undefined });
+      setMessage("Cara frontal guardada correctamente.");
+      if (documentCollectionId) await loadNodes(documentCollectionId);
+    } catch {
+      setError("No se pudo guardar la cara frontal.");
+    }
+  };
 
-    setHasFile(true);
-    setFileName(file.name);
-    setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-    setMessage("Archivo guardado correctamente (mock).");
+  const handleSaveBackNode = async (file: File) => {
+    setBackFile(file);
+    setNodeFiles((prev) => ({
+      ...prev,
+      ...(documentNodes[1] ? { [documentNodes[1].nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` } } : {}),
+    }));
+    setFileChanged(true);
+    try {
+      await uploadPropertyCardDocuments({ documentTypeId, vehicleId: String(vehicleId), backFile: file, collectionId: documentCollectionId ?? undefined });
+      setMessage("Cara trasera guardada correctamente.");
+      if (documentCollectionId) await loadNodes(documentCollectionId);
+    } catch {
+      setError("No se pudo guardar la cara trasera.");
+    }
   };
 
   return (
@@ -248,18 +324,51 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
         </Box>
 
         {documentsExpanded && (
-          <DocumentUploadCard
-            instruction={`Adjunte aquí la tarjeta de propiedad para su registro (Placa: ${plate}).`}
-            hasFile={hasFile}
-            fileName={fileName}
-            fileSizeLabel={fileSizeLabel}
-            onView={() =>
-              setMessage(
-                "Vista previa (mock): aquí se abriría el archivo desde la API.",
-              )
-            }
-            onSave={handleSaveDocument}
-          />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {/* Front face */}
+            {documentNodes[0] ? (
+              <DocumentUploadCard
+                key={documentNodes[0].nodeId}
+                instruction={`Front face — Adjunte aquí la cara frontal de la tarjeta de propiedad (Placa: ${plate}).`}
+                hasFile={nodeFiles[documentNodes[0].nodeId]?.hasFile ?? false}
+                fileName={nodeFiles[documentNodes[0].nodeId]?.fileName ?? documentNodes[0].name}
+                fileSizeLabel={nodeFiles[documentNodes[0].nodeId]?.fileSizeLabel}
+                nodeId={nodeFiles[documentNodes[0].nodeId]?.hasFile ? documentNodes[0].nodeId : undefined}
+                onSave={handleSaveFrontNode}
+                onDelete={documentCollectionId ? () => window.location.reload() : undefined}
+              />
+            ) : (
+              <DocumentUploadCard
+                instruction={`Front face — Adjunte aquí la cara frontal de la tarjeta de propiedad (Placa: ${plate}).`}
+                hasFile={!!frontFile}
+                fileName={frontFile?.name ?? "Sin archivo"}
+                fileSizeLabel={frontFile ? `${(frontFile.size / 1024).toFixed(1)} KB` : undefined}
+                onSave={handleSaveFrontNode}
+              />
+            )}
+
+            {/* Back face */}
+            {documentNodes[1] ? (
+              <DocumentUploadCard
+                key={documentNodes[1].nodeId}
+                instruction={`Back face — Adjunte aquí la cara trasera de la tarjeta de propiedad (Placa: ${plate}).`}
+                hasFile={nodeFiles[documentNodes[1].nodeId]?.hasFile ?? false}
+                fileName={nodeFiles[documentNodes[1].nodeId]?.fileName ?? documentNodes[1].name}
+                fileSizeLabel={nodeFiles[documentNodes[1].nodeId]?.fileSizeLabel}
+                nodeId={nodeFiles[documentNodes[1].nodeId]?.hasFile ? documentNodes[1].nodeId : undefined}
+                onSave={handleSaveBackNode}
+                onDelete={documentCollectionId ? () => window.location.reload() : undefined}
+              />
+            ) : (
+              <DocumentUploadCard
+                instruction={`Back face — Adjunte aquí la cara trasera de la tarjeta de propiedad (Placa: ${plate}).`}
+                hasFile={!!backFile}
+                fileName={backFile?.name ?? "Sin archivo"}
+                fileSizeLabel={backFile ? `${(backFile.size / 1024).toFixed(1)} KB` : undefined}
+                onSave={handleSaveBackNode}
+              />
+            )}
+          </Box>
         )}
       </Paper>
 
@@ -292,7 +401,7 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
           disabled={
             isEditing &&
             (saving ||
-              ((propertyNumber || "").trim() === currentNumber && !hasFile))
+              ((propertyNumber || "").trim() === (originalPropertyNumber || "").trim() && !fileChanged))
           }
           onClick={isEditing ? handleSave : () => setIsEditing(true)}
           sx={{
@@ -315,7 +424,7 @@ export function TarjetaPropiedad({ plate }: Readonly<TarjetaPropiedadProps>) {
           {(() => {
             if (!isEditing) return "Editar";
             if (saving) return "Guardando...";
-            return hasFile ? "Actualizar" : "Guardar";
+            return Object.values(nodeFiles).some((nf) => nf.hasFile) ? "Actualizar" : "Guardar";
           })()}
         </Button>
       </Box>

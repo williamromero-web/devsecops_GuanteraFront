@@ -13,14 +13,11 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
-import { useSoat } from "../../hooks/useSoat";
-import {
-  uploadDocument,
-  formatDateToDD_MM_YYYY,
-  formatToDD_MM_YYYY,
-} from "../../services/documentUpload";
+import { formatToDD_MM_YYYY } from "../../services/documentUpload";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
 
 export interface SoatProps {
   plate: string;
@@ -43,9 +40,51 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
 
-  // Load SOAT data using hook
-  const soat = useSoat(plate);
+
+  const { data: vehicleDocument, error: policyError, refetch } = useVehicleDocumentInfo(
+      vehicleIdProp ?? "",
+      3,
+    );
+
+  const collectionId: string | null = vehicleDocument?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setDocumentNodes(nodes);
+    } catch {
+      setDocumentNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetchNodes = async () => { await loadNodes(collectionId); };
+    fetchNodes();
+  }, [collectionId]);
+
+  const handleAfterChange = async () => {
+    await refetch();
+    if (collectionId) await loadNodes(collectionId);
+  };
+
+  let expiredDate = "NO REPORTADO";
+  if (vehicleDocument?.expiredDate) {
+    const formatted = formatToDD_MM_YYYY(vehicleDocument.expiredDate);
+    if (formatted) {
+      expiredDate = formatted;
+    }
+  }
+
+  let startDate = "NO REPORTADO";
+  if (vehicleDocument?.startDate) {
+    const formatted = formatToDD_MM_YYYY(vehicleDocument.startDate);
+    if (formatted) {
+      startDate = formatted;
+    }
+  }
 
   const getStatusInfo = () => {
     return {
@@ -73,57 +112,11 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
     setMessage("Information and file saved successfully (mock).");
   };
 
-  const handleSaveDocument = async (file: File) => {
-    setSaving(true);
-    setError(null);
-    setMessage(null);
-    try {
-      if (!vehicleIdProp) {
-        throw new Error("Vehicle ID not available.");
-      }
-
-      // Dates in DD-MM-YYYY format
-      const today = new Date();
-      const startDate = formatDateToDD_MM_YYYY(today);
-
-      // Expiration date: extract from current state if available
-      let expiredDate = startDate;
-      if (soat.expirationDate) {
-        const formatted = formatToDD_MM_YYYY(soat.expirationDate);
-        if (formatted) {
-          expiredDate = formatted;
-        }
-      }
-
-      // SOAT-specific metadata
-      const metadata: Record<string, string | number | null | undefined> = {};
-
-      // Use the service to upload the document
-      await uploadDocument({
-        documentTypeId: 3, // SOAT
-        vehicleId: vehicleIdProp,
-        file,
-        startDate,
-        expiredDate,
-        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
-      });
-
-      setMessage("File saved successfully.");
-    } catch (err: any) {
-      setError(
-        err.message ||
-          "Error saving file. Please try again.",
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {soat.error || error ? (
+      {policyError || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {soat.error || error}
+          {policyError || error}
         </Alert>
       ) : null}
       {message ? (
@@ -200,12 +193,46 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
         </Box>
 
         {infoExpanded && (
+          // <Grid container spacing={2}>
+          //   <Grid size={{ xs: 12, sm: 6 }}>
+          //     <TextField
+          //       fullWidth
+          //       label="Policy Number"
+          //       value={policy?.number ?? ""}
+          //       variant="outlined"
+          //       size="small"
+          //       disabled
+          //       sx={{
+          //         "& .MuiOutlinedInput-root": {
+          //           bgcolor: theme.palette.background.paper,
+          //           color: theme.palette.text.primary,
+          //         },
+          //       }}
+          //     />
+          //   </Grid>
+          //   <Grid size={{ xs: 12, sm: 6 }}>
+          //     <TextField
+          //       fullWidth
+          //       label="Expiration Date"
+          //       value={expiredDate}
+          //       variant="outlined"
+          //       size="small"
+          //       disabled
+          //       sx={{
+          //         "& .MuiOutlinedInput-root": {
+          //           bgcolor: theme.palette.background.paper,
+          //           color: theme.palette.text.primary,
+          //         },
+          //       }}
+          //     />
+          //   </Grid>
+          // </Grid>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Policy Number"
-                value={soat.number}
+                label="Start Date"
+                value={startDate}
                 variant="outlined"
                 size="small"
                 disabled
@@ -221,7 +248,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
               <TextField
                 fullWidth
                 label="Expiration Date"
-                value={soat.expirationDate}
+                value={expiredDate}
                 variant="outlined"
                 size="small"
                 disabled
@@ -283,18 +310,44 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
         </Box>
 
         {documentsExpanded && (
-          <DocumentUploadCard
-            instruction={`Attach the SOAT document for the vehicle (License plate: ${plate}).`}
-            hasFile={!!soat.file}
-            fileName={soat.file?.fileName || "soat.pdf"}
-            fileSizeLabel={soat.file?.size ? `${(soat.file.size / 1024).toFixed(1)} KB` : ""}
-            onView={() =>
-              setMessage(
-                "Preview (mock): SOAT would open from API here.",
-              )
-            }
-            onSave={handleSaveDocument}
-          />
+          <>
+            {documentNodes.length > 0 ? (
+              documentNodes.map((node) => (
+                <DocumentUploadCard
+                  key={node.nodeId}
+                  instruction={`Attach the SOAT document for the vehicle (License plate: ${plate}).`}
+                  hasFile
+                  fileName={node.name}
+                  vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
+                  documentTypeId="3"
+                  collectionId={collectionId ?? undefined}
+                  nodeId={node.nodeId}
+                  onDelete={handleAfterChange}
+                  onSave={async (file, newCollectionId) => {
+                    setMessage(`${file.name} saved successfully.`);
+                    const idToUse = newCollectionId ?? collectionId ?? null;
+                    if (idToUse) await loadNodes(idToUse);
+                    else await refetch();
+                  }}
+                />
+              ))
+            ) : (
+              <DocumentUploadCard
+                instruction={`Attach the SOAT document for the vehicle (License plate: ${plate}).`}
+                hasFile={false}
+                fileName="No file"
+                vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
+                documentTypeId="3"
+                collectionId={collectionId ?? undefined}
+                onSave={async (file, newCollectionId) => {
+                  setMessage(`${file.name} saved successfully.`);
+                  const idToUse = newCollectionId ?? collectionId ?? null;
+                  if (idToUse) await loadNodes(idToUse);
+                  else await refetch();
+                }}
+              />
+            )}
+          </>
         )}
       </Paper>
 

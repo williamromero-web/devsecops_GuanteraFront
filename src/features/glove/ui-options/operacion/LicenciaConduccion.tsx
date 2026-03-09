@@ -2,8 +2,14 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
+  FormControl,
   Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -12,8 +18,28 @@ import InfoIcon from "@mui/icons-material/Info";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useState } from "react";
 import { getStoredLicenseNumber } from "../../../../shared/lib";
+
+const TipoCategoria = {
+  A1: "A1",
+  A2: "A2",
+  B1: "B1",
+  B2: "B2",
+  B3: "B3",
+  C1: "C1",
+  C2: "C2",
+  C3: "C3",
+} as const;
+
+type TipoCategoria = (typeof TipoCategoria)[keyof typeof TipoCategoria];
+
+interface CategoriaLicencia {
+  id: string;
+  tipoCategoria: TipoCategoria | "";
+  fechaVigencia: string;
+}
 
 export interface LicenciaConduccionProps {
   plate: string;
@@ -44,15 +70,15 @@ export function LicenciaConduccion({
   );
   const [nombres, setNombres] = useState("PEPITO");
   const [apellidos, setApellidos] = useState("PEREZ");
-  const [tipoCategoria, setTipoCategoria] = useState("B2");
-  const [fechaVigencia, setFechaVigencia] = useState("2025-11-26");
+  const [categorias, setCategorias] = useState<CategoriaLicencia[]>([
+    { id: crypto.randomUUID(), tipoCategoria: "", fechaVigencia: "" },
+  ]);
 
   const currentState = {
     licenciaNumero,
     nombres,
     apellidos,
-    tipoCategoria,
-    fechaVigencia,
+    categorias,
   };
 
   const handleCancel = () => {
@@ -60,8 +86,7 @@ export function LicenciaConduccion({
     setLicenciaNumero(currentState.licenciaNumero);
     setNombres(currentState.nombres);
     setApellidos(currentState.apellidos);
-    setTipoCategoria(currentState.tipoCategoria);
-    setFechaVigencia(currentState.fechaVigencia);
+    setCategorias(currentState.categorias);
     setError(null);
     setMessage(null);
   };
@@ -86,6 +111,27 @@ export function LicenciaConduccion({
   };
 
   const disabledFields = !isEditing || saving;
+
+  const handleCategoriaChange = (
+    id: string,
+    field: keyof Omit<CategoriaLicencia, "id">,
+    value: string,
+  ) => {
+    setCategorias((prev) =>
+      prev.map((cat) => (cat.id === id ? { ...cat, [field]: value } : cat)),
+    );
+  };
+
+  const handleAddCategoria = () => {
+    setCategorias((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), tipoCategoria: "", fechaVigencia: "" },
+    ]);
+  };
+
+  const handleRemoveCategoria = (id: string) => {
+    setCategorias((prev) => prev.filter((cat) => cat.id !== id));
+  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -226,31 +272,115 @@ export function LicenciaConduccion({
               disabled={disabledFields}
             />
           </Grid>
-
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <TextField
-              fullWidth
-              label="Categoría"
-              value={tipoCategoria}
-              onChange={(e) => setTipoCategoria(e.target.value)}
-              size="small"
-              disabled={disabledFields}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <TextField
-              fullWidth
-              label="Fecha de vigencia"
-              type="date"
-              value={fechaVigencia}
-              onChange={(e) => setFechaVigencia(e.target.value)}
-              size="small"
-              disabled={disabledFields}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
         </Grid>
+
+        <Divider sx={{ mt: 2, mb: 2 }} />
+
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            fontWeight: 700,
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          Categorías
+        </Typography>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {categorias.map((cat, index) => (
+            <Paper
+              key={cat.id}
+              variant="outlined"
+              sx={{ p: 2, borderColor, borderRadius: 2 }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 700,
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  Categoría {index + 1}
+                </Typography>
+                {!disabledFields && (
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveCategoria(cat.id)}
+                    disabled={saving}
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth size="small" disabled={disabledFields}>
+                    <InputLabel>Tipo de categoría</InputLabel>
+                    <Select
+                      value={cat.tipoCategoria}
+                      label="Tipo de categoría"
+                      onChange={(e) =>
+                        handleCategoriaChange(
+                          cat.id,
+                          "tipoCategoria",
+                          e.target.value,
+                        )
+                      }
+                    >
+                      {Object.values(TipoCategoria).map((tipo) => (
+                        <MenuItem key={tipo} value={tipo}>
+                          {tipo}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Fecha de vigencia"
+                    type="date"
+                    value={cat.fechaVigencia}
+                    onChange={(e) =>
+                      handleCategoriaChange(
+                        cat.id,
+                        "fechaVigencia",
+                        e.target.value,
+                      )
+                    }
+                    size="small"
+                    disabled={disabledFields}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          ))}
+        </Box>
+
+        {!disabledFields && (
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleAddCategoria}
+            disabled={saving}
+            sx={{ mt: 2 }}
+          >
+            Agregar otra categoría
+          </Button>
+        )}
+
       </Paper>
     </Box>
   );

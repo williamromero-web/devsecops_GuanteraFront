@@ -4,6 +4,7 @@ import {
   Button,
   Chip,
   Grid,
+  MenuItem,
   Paper,
   TextField,
   Typography,
@@ -17,14 +18,18 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { useInsurancePolicy } from "../../hooks/useInsurancePolicy";
+import { useInsurers } from "../../hooks/useInsurers";
+import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
 
 export interface PolizaSeguroProps {
   plate: string;
+  vehicleId?: number | string;
 }
 
-export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
+export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<PolizaSeguroProps>) {
   const theme = useTheme();
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -41,25 +46,68 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: implementacion de api para obtener datos de póliza de seguro
-  // CAMBIO REQUERIDO:
-  // 1. Reemplazar mock values con llamada GET a API: /simon-glove/private/vehicles/{plate}/poliza-seguro
-  // 2. Usar useEffect para cargar datos al montar componente
-  // 3. Mapear respuesta de API a estados (statusType, numeroPoliza, aseguradora, etc)
+  const { policy, document, error: policyError, refetch } = useInsurancePolicy("insurance_policy", plate);
+  const { insurers } = useInsurers();
 
-  const statusType = "OK"; // "OK" | "PRÓXIMO A VENCER" | "VENCIDO"
-  const [numeroPoliza, setNumeroPoliza] = useState("POL-SEG-987654");
-  const [aseguradora, setAseguradora] = useState("Seguros del Estado");
-  const [fechaVigencia, setFechaVigencia] = useState("2025-12-31");
-  const [contactoAsistencia, setContactoAsistencia] = useState("+57 1 2345678");
-  const [hasFile, setHasFile] = useState(false);
-  const [fileName, setFileName] = useState("Sin archivo");
-  const [fileSizeLabel, setFileSizeLabel] = useState("0 KB");
+  const [numeroPoliza, setNumeroPoliza] = useState("");
+  const [aseguradora, setAseguradora] = useState("");
+  const [fechaVigencia, setFechaVigencia] = useState("");
+  const [contactoAsistencia, setContactoAsistencia] = useState("");
+  
+  const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
 
-  const currentNumeroPoliza = "POL-SEG-987654";
-  const currentAseguradora = "Seguros del Estado";
-  const currentFechaVigencia = "2025-12-31";
-  const currentContactoAsistencia = "+57 1 2345678";
+  const collectionId: string | null = document?.documentCollectionId ?? null;
+
+  const loadNodes = async (id: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(id);
+      setDocumentNodes(nodes);
+    } catch {
+      setDocumentNodes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!collectionId) return;
+    const fetchNodes = async () => { await loadNodes(collectionId); };
+    fetchNodes();
+  }, [collectionId]);
+
+  const fillInsurerContact = (insurerId: number) => {
+    const insurer = insurers.find(i => i.id === insurerId);
+    if (insurer) {
+      setContactoAsistencia(insurer.contactNumber);
+    }
+  };
+
+  useEffect(() => {
+    if (!policy || insurers.length === 0) return;
+
+    setNumeroPoliza(policy.number ?? "");
+    setAseguradora(policy.insurerId?.toString() ?? "");
+
+    fillInsurerContact(policy.insurerId);
+
+    // setContactoAsistencia(policy.assistanceNumber ?? "");
+    setFechaVigencia(document.endDate ?? "");
+  }, [policy, document]);
+
+  const getStatusType = () => {
+    switch (document?.color) {
+      case "#FF4444":
+        return "VENCIDO";
+      case "#FF8844":
+      case "#FFBB44":
+      case "#FFDD44":
+        return "PRÓXIMO A VENCER";
+      case "green":
+        return "OK";
+      default:
+        return null;
+    }
+  };
+
+  const statusType = getStatusType();
 
   const getStatusInfo = () => {
     if (statusType === "OK") {
@@ -102,10 +150,10 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setNumeroPoliza(currentNumeroPoliza);
-    setAseguradora(currentAseguradora);
-    setFechaVigencia(currentFechaVigencia);
-    setContactoAsistencia(currentContactoAsistencia);
+    setNumeroPoliza(policy?.number ?? "");
+    setAseguradora(policy?.insurerName ?? "");
+    setFechaVigencia(document?.endDate ?? "");
+    setContactoAsistencia(policy?.assistanceNumber ?? "");
     setError(null);
     setMessage(null);
   };
@@ -115,37 +163,22 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
     setError(null);
     setMessage(null);
 
-    // TODO: implementacion de api para actualizar póliza de seguro
-    // CAMBIO REQUERIDO:
-    // 1. Reemplazar setTimeout mock con llamada PUT a API: /simon-glove/private/vehicles/{plate}/poliza-seguro
-    // 2. Incluir datos de póliza en el body: numeroPoliza, aseguradora, fechaVigencia, contactoAsistencia
-    // 3. Validar datos antes de enviar
-
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSaving(false);
     setIsEditing(false);
     setMessage("Información y archivo guardados correctamente (mock).");
   };
 
-  const handleSaveDocument = async (file: File) => {
-    // TODO: implementacion de api para guardar documento de póliza de seguro
-    // CAMBIO REQUERIDO:
-    // 1. Reemplazar mock con llamada POST a API: /simon-glove/private/vehicles/{plate}/poliza-seguro/upload
-    // 2. Usar FormData para enviar archivo
-    // 3. Validar tipo de archivo (PDF)
-    // 4. Actualizar UI con datos del archivo guardado
-
-    setHasFile(true);
-    setFileName(file.name);
-    setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-    setMessage("Archivo guardado correctamente (mock).");
+  const handleAfterChange = async () => {
+    refetch();
+    if (collectionId) await loadNodes(collectionId);
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {error ? (
+      {policyError || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+          {policyError || error}
         </Alert>
       ) : null}
       {message ? (
@@ -253,7 +286,7 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              {/* <TextField
                 fullWidth
                 label="Aseguradora"
                 value={aseguradora}
@@ -267,7 +300,25 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
                     color: theme.palette.text.primary,
                   },
                 }}
-              />
+              /> */}
+              <TextField
+                select
+                label="Aseguradora"
+                value={aseguradora}
+                disabled={!isEditing}
+                onChange={(e) => {
+                  const selectedId = Number(e.target.value);
+                  setAseguradora(selectedId.toString());
+                  fillInsurerContact(selectedId);
+                }}
+                fullWidth
+              >
+                {insurers.map((insurer) => (
+                  <MenuItem key={insurer.id} value={insurer.id}>
+                    {insurer.name}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
@@ -355,18 +406,44 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
         </Box>
 
         {documentsExpanded && (
-          <DocumentUploadCard
-            instruction={`Adjunte aquí la póliza de seguro todo riesgo del vehículo (Placa: ${plate}).`}
-            hasFile={hasFile}
-            fileName={fileName}
-            fileSizeLabel={fileSizeLabel}
-            onView={() =>
-              setMessage(
-                "Vista previa (mock): aquí se abriría la póliza desde la API.",
-              )
-            }
-            onSave={handleSaveDocument}
-          />
+          <>
+            {documentNodes.length > 0 ? (
+              documentNodes.map((node) => (
+                <DocumentUploadCard
+                  key={node.nodeId}
+                  instruction={`Adjunte aquí la póliza de seguro todo riesgo del vehículo (Placa: ${plate}).`}
+                  hasFile
+                  fileName={node.name}
+                  vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
+                  documentTypeId="4"
+                  collectionId={collectionId ?? undefined}
+                  nodeId={node.nodeId}
+                  onDelete={handleAfterChange}
+                  onSave={async (file, newCollectionId) => {
+                    setMessage(`${file.name} guardado correctamente.`);
+                    const idToUse = newCollectionId ?? collectionId ?? null;
+                    if (idToUse) await loadNodes(idToUse);
+                    else await refetch();
+                  }}
+                />
+              ))
+            ) : (
+              <DocumentUploadCard
+                instruction={`Adjunte aquí la póliza de seguro todo riesgo del vehículo (Placa: ${plate}).`}
+                hasFile={false}
+                fileName="Sin archivo"
+                vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
+                documentTypeId="4"
+                collectionId={collectionId ?? undefined}
+                onSave={async (file, newCollectionId) => {
+                  setMessage(`${file.name} guardado correctamente.`);
+                  const idToUse = newCollectionId ?? collectionId ?? null;
+                  if (idToUse) await loadNodes(idToUse);
+                  else await refetch();
+                }}
+              />
+            )}
+          </>
         )}
       </Paper>
 
@@ -400,11 +477,12 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
           disabled={
             isEditing &&
             (saving ||
-              (numeroPoliza.trim() === currentNumeroPoliza &&
-                aseguradora.trim() === currentAseguradora &&
-                fechaVigencia === currentFechaVigencia &&
-                contactoAsistencia.trim() === currentContactoAsistencia &&
-                !hasFile))
+              (numeroPoliza.trim() === (policy?.number ?? "").trim() &&
+              aseguradora.trim() === (policy?.insurerName ?? "").trim() &&
+              fechaVigencia === (document?.endDate ?? "") &&
+              contactoAsistencia.trim() === (policy?.assistanceNumber ?? "").trim() //&&
+            ))
+              // !hasFile))
           }
           onClick={isEditing ? handleSave : () => setIsEditing(true)}
           sx={{
@@ -424,13 +502,14 @@ export function PolizaSeguro({ plate }: Readonly<PolizaSeguroProps>) {
             },
           }}
         >
-          {isEditing
+          {isEditing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
+          {/* {isEditing
             ? saving
               ? "Guardando..."
               : hasFile
                 ? "Actualizar"
                 : "Guardar"
-            : "Editar"}
+            : "Editar"} */}
         </Button>
       </Box>
     </Box>

@@ -5,15 +5,18 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { getDocumentTypeByCode } from "../../services";
 
 export interface DeclaracionImportacionProps {
   plate: string;
+  vehicleId: Number;
 }
 
 export function DeclaracionImportacion({
   plate,
+  vehicleId,
 }: Readonly<DeclaracionImportacionProps>) {
   const theme = useTheme();
   const borderColor =
@@ -33,6 +36,15 @@ export function DeclaracionImportacion({
   const [hasFile, setHasFile] = useState(false);
   const [fileName, setFileName] = useState("Sin archivo");
   const [fileSizeLabel, setFileSizeLabel] = useState("0 KB");
+  const [documentTypeId, setDocumentTypeId] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+    getDocumentTypeByCode("DI")
+      .then((res) => { if (!ignore) setDocumentTypeId(String(res.data.id)); })
+      .catch(() => undefined);
+    return () => { ignore = true; };
+  }, []);
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -120,6 +132,8 @@ export function DeclaracionImportacion({
             hasFile={hasFile}
             fileName={fileName}
             fileSizeLabel={fileSizeLabel}
+            vehicleId={String(vehicleId)}
+            documentTypeId={documentTypeId}
             onView={() =>
               setMessage(
                 "Vista previa (mock): aquí se abriría la declaración desde la API.",

@@ -12,8 +12,9 @@ import { useVehicle } from "../hooks/useVehicle";
 import { getOptionComponent } from "../ui-options";
 
 export function GuanteraOptionPage() {
-  const { plate, module, option } = useParams<{
+  const { plate, vehicleId, module, option } = useParams<{
     plate: string;
+    vehicleId: string;
     module: string;
     option: string;
   }>();
@@ -25,6 +26,8 @@ export function GuanteraOptionPage() {
   const optionItem = findOption(moduleKey, option ?? "") ?? null;
   const optionLabel = optionItem?.label ?? option ?? "Opción";
 
+  console.log("option vehicleId", vehicleId);
+  
   const { vehicle } = useVehicle(plate);
   const isActive = (() => {
     if (!vehicle) return true;
@@ -46,14 +49,14 @@ export function GuanteraOptionPage() {
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3, minHeight: 0 }}>
         <PageHeader
           title={optionLabel}
-          onBack={() => navigate(`/glove/${plate}/${moduleKey}`)}
+          onBack={() => navigate(`/glove/${plate}/${vehicleId}/${moduleKey}`)}
           breadcrumbItems={breadcrumbItems}
         />
 
         <VehicleInfoSection plate={plate ?? "—"} isActive={isActive} />
 
         {OptionComponent ? (
-          <OptionComponent plate={plate ?? ""} />
+          <OptionComponent vehicleId={Number(vehicleId)} plate={plate ?? ""} />
         ) : (
           <Paper
             sx={{
