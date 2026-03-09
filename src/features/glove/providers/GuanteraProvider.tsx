@@ -18,6 +18,7 @@ export interface GuanteraConfig {
   devicesApiConfig: DevicesApiConfig | null;
 
   userProfile: {
+    licenseNumber: string | null;
     firstName: string | null;
     lastName: string | null;
     email: string | null;
