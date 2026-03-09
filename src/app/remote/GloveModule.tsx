@@ -19,6 +19,12 @@ export interface GloveModuleConfig {
     searchParamName?: string;
   } | null;
   themeMode?: "light" | "dark";
+  userProfile?: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    phoneNumber: string | null;
+  } | null;
 }
 
 export default function GloveModule({
@@ -55,6 +61,7 @@ export default function GloveModule({
         getAuthHeaders: config?.getAuthHeaders ?? (() => ({})),
         fetchDevices: config?.fetchDevices ?? null,
         devicesApiConfig: config?.devicesApiConfig ?? null,
+        userProfile: config?.userProfile ?? null,
       }}
     >
       {content}
