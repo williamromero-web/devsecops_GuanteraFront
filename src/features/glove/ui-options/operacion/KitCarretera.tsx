@@ -15,10 +15,11 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface KitCarreteraProps {
   plate: string;
+  vehicleId: number;
 }
 
 const KIT_ITEMS = [
@@ -43,7 +44,7 @@ const KIT_ITEMS = [
   },
 ];
 
-export function KitCarretera({ plate: _plate }: Readonly<KitCarreteraProps>) {
+export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<KitCarreteraProps>) {
   const theme = useTheme();
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -54,22 +55,68 @@ export function KitCarretera({ plate: _plate }: Readonly<KitCarreteraProps>) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [roadKitId, setRoadKitId] = useState<number | null>(null);
 
   const [kitItems, setKitItems] = useState<Record<string, boolean>>({
-    gato: true,
-    senales: true,
+    gato: false,
+    senales: false,
     linterna: false,
-    llanta: true,
-    cruceta: true,
-    tacos: true,
+    llanta: false,
+    cruceta: false,
+    tacos: false,
     "caja-herramientas": false,
   });
-  const [extintorPresente, setExtintorPresente] = useState(true);
-  const [fechaUltimaRecarga, setFechaUltimaRecarga] = useState("2025-01-15");
+  const [extintorPresente, setExtintorPresente] = useState(false);
+  const [fechaUltimaRecarga, setFechaUltimaRecarga] = useState("");
 
-  const currentKitItems = { ...kitItems };
-  const currentExtintorPresente = extintorPresente;
-  const currentFechaUltimaRecarga = fechaUltimaRecarga;
+  const [currentKitItems, setCurrentKitItems] = useState(kitItems);
+  const [currentExtintorPresente, setCurrentExtintorPresente] = useState(extintorPresente);
+  const [currentFechaUltimaRecarga, setCurrentFechaUltimaRecarga] = useState(fechaUltimaRecarga);
+
+  // Fetch road kit data
+  useEffect(() => {
+    const fetchRoadKitData = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+        const response = await fetch(`${baseUrl}/roadkit/${_plate}`);
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch road kit data");
+        }
+
+        const data = await response.json();
+        if (data.success && data.data) {
+          const roadKitData = data.data;
+          
+          // Set ID if it exists
+          if (roadKitData.id) {
+            setRoadKitId(roadKitData.id);
+          }
+
+          // Map API response to component state
+          const mappedKitItems = {
+            gato: roadKitData.jack ?? false,
+            senales: roadKitData.road_signs ?? false,
+            linterna: roadKitData.flashlight ?? false,
+            llanta: roadKitData.spare_tire ?? false,
+            cruceta: roadKitData.lug_wrench ?? false,
+            tacos: roadKitData.wheel_chocks ?? false,
+            "caja-herramientas": roadKitData.toolbox ?? false,
+          };
+          
+          setKitItems(mappedKitItems);
+          setCurrentKitItems(mappedKitItems);
+          setExtintorPresente(roadKitData.has_extinguisher ?? false);
+          setCurrentExtintorPresente(roadKitData.has_extinguisher ?? false);
+        }
+      } catch (err) {
+        console.error("Error fetching road kit data:", err);
+        setError("Error al cargar los datos del kit de carretera");
+      }
+    };
+
+    fetchRoadKitData();
+  }, [_plate]);
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -84,10 +131,82 @@ export function KitCarretera({ plate: _plate }: Readonly<KitCarreteraProps>) {
     setSaving(true);
     setError(null);
     setMessage(null);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Información del kit guardada correctamente (mock).");
+    
+    try {
+      // Validate that date is required when extinguisher is present
+      if (extintorPresente && !fechaUltimaRecarga) {
+        setError("La fecha de última recarga del extintor es obligatoria");
+        setSaving(false);
+        return;
+      }
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      
+      // Map component state to API request format
+      const payload: any = {
+        jack: kitItems.gato,
+        roadSigns: kitItems.senales,
+        flashlight: kitItems.linterna,
+        spareTire: kitItems.llanta,
+        lugWrench: kitItems.cruceta,
+        wheelChocks: kitItems.tacos,
+        toolbox: kitItems["caja-herramientas"],
+        vehicleId: _vehicleId,
+      };
+
+      // Add FireExtinguisher object only if extinguisher is present
+      if (extintorPresente) {
+        // Convert date to ISO 8601 format with time
+        const dateObj = new Date(fechaUltimaRecarga);
+        const isoDate = dateObj.toISOString().replace('Z', '-05:00');
+        
+        payload.FireExtinguisher = {
+          hasExtinguisher: true,
+          refillDate: isoDate,
+        };
+      }
+
+      let response;
+      if (roadKitId) {
+        // PUT request - update existing record
+        response = await fetch(`${baseUrl}/roadkit/roadkit/${roadKitId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // POST request - create new record
+        response = await fetch(`${baseUrl}/roadkit/roadkit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to save road kit data");
+      }
+
+      const result = await response.json();
+      if (result.success && result.data && result.data.id) {
+        setRoadKitId(result.data.id);
+      }
+
+      setCurrentKitItems(kitItems);
+      setCurrentExtintorPresente(extintorPresente);
+      setCurrentFechaUltimaRecarga(fechaUltimaRecarga);
+      setIsEditing(false);
+      setMessage("Información del kit guardada correctamente.");
+    } catch (err) {
+      console.error("Error saving road kit data:", err);
+      setError("Error al guardar los datos del kit de carretera. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -219,13 +338,16 @@ export function KitCarretera({ plate: _plate }: Readonly<KitCarreteraProps>) {
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
-                      label="Fecha última recarga"
+                      label="Fecha última recarga *"
                       type="date"
                       value={fechaUltimaRecarga}
                       onChange={(e) => setFechaUltimaRecarga(e.target.value)}
                       disabled={!isEditing}
                       variant="outlined"
                       size="small"
+                      required
+                      error={isEditing && !fechaUltimaRecarga}
+                      helperText={isEditing && !fechaUltimaRecarga ? "La fecha es obligatoria" : ""}
                       InputLabelProps={{ shrink: true }}
                       sx={{
                         "& .MuiOutlinedInput-root": {
@@ -273,7 +395,12 @@ export function KitCarretera({ plate: _plate }: Readonly<KitCarreteraProps>) {
           variant="contained"
           startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
           disabled={isEditing && saving}
-          onClick={isEditing ? handleSave : () => setIsEditing(true)}
+          onClick={isEditing ? handleSave : () => {
+            setCurrentKitItems(kitItems);
+            setCurrentExtintorPresente(extintorPresente);
+            setCurrentFechaUltimaRecarga(fechaUltimaRecarga);
+            setIsEditing(true);
+          }}
           sx={{
             bgcolor: theme.palette.primary.light,
             color: "#000",

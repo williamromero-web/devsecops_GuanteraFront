@@ -2,8 +2,8 @@ import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
+// import EditIcon from "@mui/icons-material/Edit";
+// import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
@@ -31,7 +31,7 @@ export function GuiaControlMantenimiento({
     theme.palette.background.default;
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,23 +83,6 @@ export function GuiaControlMantenimiento({
     setIsEditing(false);
     setError(null);
     setMessage(null);
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    setMessage(null);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-  //   setMessage("Archivo guardado correctamente (mock).");
-  // };
-
-  // const handleSaveDocument = async (file: File) => {
-  //   setHasFile(true);
-  //   setFileName(file.name);
-  //   setFileSizeLabel(`${(file.size / 1024).toFixed(1)} KB`);
-  //   setMessage("Archivo guardado correctamente (mock).");
   };
 
   return (
@@ -225,7 +208,7 @@ export function GuiaControlMantenimiento({
             Cancelar
           </Button>
         )}
-        <Button
+        {/* <Button
           variant="contained"
           startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
           disabled={isEditing && saving}
@@ -248,7 +231,7 @@ export function GuiaControlMantenimiento({
           }}
         >
           {isEditing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
-        </Button>
+        </Button> */}
       </Box>
     </Box>
   );

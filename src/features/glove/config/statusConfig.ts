@@ -12,7 +12,7 @@ export function getStatusConfig(theme: Theme) {
       iconColor: theme.palette.success.main,
     },
     inactive: {
-      label: "No registrado en el RUNT",
+      label: "No Disponible",
       color: theme.palette.text.disabled,
       bg: theme.palette.action.disabledBackground,
       iconColor: theme.palette.text.disabled,

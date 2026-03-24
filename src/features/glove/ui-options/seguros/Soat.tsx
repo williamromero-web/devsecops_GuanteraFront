@@ -1,7 +1,7 @@
 import {
   Alert,
   Box,
-  Button,
+  // Button,
   Grid,
   Paper,
   TextField,
@@ -10,9 +10,9 @@ import {
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Cancel";
+// import EditIcon from "@mui/icons-material/Edit";
+// import SaveIcon from "@mui/icons-material/Save";
+// import CancelIcon from "@mui/icons-material/Cancel";
 import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 import { formatToDD_MM_YYYY } from "../../services/documentUpload";
@@ -30,14 +30,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
-  const surfaceAlt =
-    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
-    theme.palette.background.paper ??
-    theme.palette.background.default;
+  // const surfaceAlt =
+  //   (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+  //   theme.palette.background.paper ??
+  //   theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
+  // const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
@@ -60,6 +60,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
   };
 
   useEffect(() => {
+    setError(null)
     if (!collectionId) return;
     const fetchNodes = async () => { await loadNodes(collectionId); };
     fetchNodes();
@@ -96,21 +97,21 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
 
   const statusInfo = getStatusInfo();
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setError(null);
-    setMessage(null);
-  };
+  // const handleCancel = () => {
+  //   setIsEditing(false);
+  //   setError(null);
+  //   setMessage(null);
+  // };
 
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    setMessage(null);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Information and file saved successfully (mock).");
-  };
+  // const handleSave = async () => {
+  //   setSaving(true);
+  //   setError(null);
+  //   setMessage(null);
+  //   await new Promise((resolve) => setTimeout(resolve, 500));
+  //   setSaving(false);
+  //   setIsEditing(false);
+  //   setMessage("Information and file saved successfully (mock).");
+  // };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -351,7 +352,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
         )}
       </Paper>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
         {isEditing && (
           <Button
             variant="outlined"
@@ -398,7 +399,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
         >
           {isEditing ? (saving ? "Saving..." : "Save") : "Edit"}
         </Button>
-      </Box>
+      </Box> */}
     </Box>
   );
 }

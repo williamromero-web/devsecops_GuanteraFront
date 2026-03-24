@@ -23,6 +23,7 @@ import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUplo
 import { useInsurancePolicy } from "../../hooks/useInsurancePolicy";
 import { useInsurers } from "../../hooks/useInsurers";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { uploadPolicyDocument } from "../../services";
 
 export interface PolizaSeguroProps {
   plate: string;
@@ -88,7 +89,6 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
 
     fillInsurerContact(policy.insurerId);
 
-    // setContactoAsistencia(policy.assistanceNumber ?? "");
     setFechaVigencia(document.endDate ?? "");
   }, [policy, document]);
 
@@ -151,22 +151,41 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
   const handleCancel = () => {
     setIsEditing(false);
     setNumeroPoliza(policy?.number ?? "");
-    setAseguradora(policy?.insurerName ?? "");
+    setAseguradora(policy?.insurerId?.toString() ?? "");
     setFechaVigencia(document?.endDate ?? "");
     setContactoAsistencia(policy?.assistanceNumber ?? "");
     setError(null);
     setMessage(null);
   };
 
+    const metadata = { 
+      PolicyTypeID: 2, 
+      InsurerID: aseguradora,
+      InsurerCellPhone: contactoAsistencia,
+      AssistanceNumber: contactoAsistencia,
+      Number: numeroPoliza,
+    };
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     setMessage(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Información y archivo guardados correctamente (mock).");
+    try {
+      await uploadPolicyDocument({
+        documentTypeId: "4",
+        vehicleId: vehicleIdProp !== undefined ? String(vehicleIdProp) : 0,
+        expiredDate: fechaVigencia,
+        metadata,
+      });
+
+      setMessage("Poliza actualizada correctamente.");
+      setIsEditing(false);
+    } catch {
+      setError("No se pudo actualizar La póliza.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAfterChange = async () => {
@@ -356,6 +375,72 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                 }}
               />
             </Grid>
+            <Grid size={{ xs: 12 }}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                {isEditing && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<CancelIcon />}
+                    onClick={handleCancel}
+                    sx={{
+                      borderColor,
+                      color: theme.palette.text.secondary,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      px: 3,
+                      py: 1.5,
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: theme.palette.text.secondary,
+                        bgcolor: surfaceAlt,
+                      },
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
+                  disabled={
+                    isEditing &&
+                    (saving ||
+                      (numeroPoliza.trim() === (policy?.number ?? "").trim() &&
+                      aseguradora.trim() === (policy?.insurerName ?? "").trim() &&
+                      fechaVigencia === (document?.endDate ?? "") &&
+                      contactoAsistencia.trim() === (policy?.assistanceNumber ?? "").trim() //&&
+                    ))
+                      // !hasFile))
+                  }
+                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                  sx={{
+                    bgcolor: theme.palette.primary.light,
+                    color: "#000",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 2,
+                    "&:hover": {
+                      bgcolor: theme.palette.primary.main,
+                    },
+                    "&:disabled": {
+                      bgcolor: theme.palette.action.disabledBackground,
+                      color: theme.palette.action.disabled,
+                    },
+                  }}
+                >
+                  {isEditing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
+                  {/* {isEditing
+                    ? saving
+                      ? "Guardando..."
+                      : hasFile
+                        ? "Actualizar"
+                        : "Guardar"
+                    : "Editar"} */}
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
         )}
       </Paper>
@@ -418,6 +503,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                   documentTypeId="4"
                   collectionId={collectionId ?? undefined}
                   nodeId={node.nodeId}
+                  metadata={metadata}
                   onDelete={handleAfterChange}
                   onSave={async (file, newCollectionId) => {
                     setMessage(`${file.name} guardado correctamente.`);
@@ -435,6 +521,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                 vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
                 documentTypeId="4"
                 collectionId={collectionId ?? undefined}
+                metadata={metadata}
                 onSave={async (file, newCollectionId) => {
                   setMessage(`${file.name} guardado correctamente.`);
                   const idToUse = newCollectionId ?? collectionId ?? null;
@@ -445,73 +532,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             )}
           </>
         )}
-      </Paper>
-
-      {/* Botones de acción */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-        {isEditing && (
-          <Button
-            variant="outlined"
-            startIcon={<CancelIcon />}
-            onClick={handleCancel}
-            sx={{
-              borderColor,
-              color: theme.palette.text.secondary,
-              fontWeight: 600,
-              textTransform: "none",
-              px: 3,
-              py: 1.5,
-              borderRadius: 2,
-              "&:hover": {
-                borderColor: theme.palette.text.secondary,
-                bgcolor: surfaceAlt,
-              },
-            }}
-          >
-            Cancelar
-          </Button>
-        )}
-        <Button
-          variant="contained"
-          startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-          disabled={
-            isEditing &&
-            (saving ||
-              (numeroPoliza.trim() === (policy?.number ?? "").trim() &&
-              aseguradora.trim() === (policy?.insurerName ?? "").trim() &&
-              fechaVigencia === (document?.endDate ?? "") &&
-              contactoAsistencia.trim() === (policy?.assistanceNumber ?? "").trim() //&&
-            ))
-              // !hasFile))
-          }
-          onClick={isEditing ? handleSave : () => setIsEditing(true)}
-          sx={{
-            bgcolor: theme.palette.primary.light,
-            color: "#000",
-            fontWeight: 600,
-            textTransform: "none",
-            px: 3,
-            py: 1.5,
-            borderRadius: 2,
-            "&:hover": {
-              bgcolor: theme.palette.primary.main,
-            },
-            "&:disabled": {
-              bgcolor: theme.palette.action.disabledBackground,
-              color: theme.palette.action.disabled,
-            },
-          }}
-        >
-          {isEditing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
-          {/* {isEditing
-            ? saving
-              ? "Guardando..."
-              : hasFile
-                ? "Actualizar"
-                : "Guardar"
-            : "Editar"} */}
-        </Button>
-      </Box>
+      </Paper>  
     </Box>
   );
 }

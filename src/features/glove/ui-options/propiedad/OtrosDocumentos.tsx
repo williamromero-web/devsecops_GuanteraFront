@@ -8,6 +8,11 @@ import {
   Grid,
   IconButton,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
@@ -16,20 +21,22 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useEffect, useState } from "react";
-import { formatToDD_MM_YYYY, getDocumentTypeByCode, uploadOtrosDocumentos } from "../../services";
+import { useState, useEffect } from "react";
+import { formatToDD_MM_YYYY, uploadOtrosDocumentos } from "../../services";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
-import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
+import { useOtherDocuments } from "../../hooks/useOtherDocuments";
 import { httpDelete } from "../../lib/httpClient";
 
 interface Document {
   id: string | null;
+  otherDocumentId: number | null;
   nombre: string;
   entidad: string;
   fechaExpedicion: string;
   fechaVencimiento: string;
   observaciones: string;
   archivos: File[];
+  collectionId?: string;
 }
 
 export interface OtrosDocumentosProps {
@@ -47,54 +54,41 @@ export function OtrosDocumentos({
     theme.palette.divider ??
     "#D0D0D0";
 
-  const [documentTypeId, setDocumentTypeId] = useState<number | null>(null);
-  const [existingNodes, setExistingNodes] = useState<VehicleDocumentNode[]>([]);
-
-  useEffect(() => {
-    getDocumentTypeByCode("OT")
-      .then((res) => setDocumentTypeId(res.data.id))
-      .catch(() => undefined);
-  }, []);
-
-  const { data: docInfo, refetch } = useVehicleDocumentInfo(String(_vehicleId), documentTypeId ?? "");
-  const collectionId = docInfo?.documentCollectionId ?? null;
-
-  const loadNodes = async (id: string) => {
-    try {
-      const nodes = await getVehicleDocumentNodes(id);
-      setExistingNodes(nodes);
-    } catch {
-      setExistingNodes([]);
-    }
-  };
-
-  useEffect(() => {
-    if (!collectionId) return;
-    const fetchNodes = async () => {
-      await loadNodes(collectionId);
-    };
-    fetchNodes();
-  }, [collectionId]);
+  const { documents: otherDocuments, error: loadingError, refetch } = useOtherDocuments(_plate);
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [existingNodes, setExistingNodes] = useState<Map<string, VehicleDocumentNode[]>>(new Map());
+  
+  // Estado para el diálogo de confirmación
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteType, setDeleteType] = useState<"node" | "document" | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteDocIndex, setDeleteDocIndex] = useState<number | null>(null);
+
+  const loadNodes = async (collectionId: string) => {
+    try {
+      const nodes = await getVehicleDocumentNodes(collectionId);
+      setExistingNodes((prev) => new Map(prev).set(collectionId, nodes));
+    } catch {
+      setExistingNodes((prev) => new Map(prev).set(collectionId, []));
+    }
+  };
 
   const handleRemoveNode = async (nodeId: string) => {
-    const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
-    try {
-      await httpDelete(`/vehicledocument/nodes/${nodeId}`, { baseUrl });
-      setExistingNodes((prev) => prev.filter((n) => n.nodeId !== nodeId));
-    } catch {
-      setError("No se pudo eliminar el archivo.");
-    }
+    setDeleteType("node");
+    setDeleteId(nodeId);
+    setConfirmDeleteOpen(true);
   };
 
   const [documentos, setDocumentos] = useState<Document[]>([
     {
       id: null,
+      otherDocumentId: null,
       nombre: "",
       entidad: "",
       fechaExpedicion: "",
@@ -151,6 +145,7 @@ export function OtrosDocumentos({
       ...documentos,
       {
         id: null,
+        otherDocumentId: null,
         nombre: "",
         entidad: "",
         fechaExpedicion: "",
@@ -161,10 +156,11 @@ export function OtrosDocumentos({
     ]);
   };
 
-  const removeDocumento = (index: number) => {
-    if (documentos.length > 1) {
-      setDocumentos(documentos.filter((_, idx) => idx !== index));
-    }
+  const removeDocumento = (index: number, id: string | null) => {
+    setDeleteType("document");
+    setDeleteId(id);
+    setDeleteDocIndex(index);
+    setConfirmDeleteOpen(true);
   };
 
   const handleCancel = () => {
@@ -172,7 +168,70 @@ export function OtrosDocumentos({
     setError(null);
     setSubmitted(false);
     setMessage(null);
+    // Resetear documentos al estado original si es edición
+    initializeDocumentsFromOtherDocuments();
   };
+
+  const initializeDocumentsFromOtherDocuments = () => {
+    if (otherDocuments.length === 0) {
+      setDocumentos([
+        {
+          id: null,
+          otherDocumentId: null,
+          nombre: "",
+          entidad: "",
+          fechaExpedicion: "",
+          fechaVencimiento: "",
+          observaciones: "",
+          archivos: [],
+        },
+      ]);
+    } else {
+      const initialized = otherDocuments.map((item) => ({
+        id: String(item.document.id),
+        otherDocumentId: item.otherDocument.id,
+        nombre: item.otherDocument.name,
+        entidad: item.otherDocument.entity,
+        fechaExpedicion: item.document.startDate,
+        fechaVencimiento: item.document.endDate,
+        observaciones: item.otherDocument.description,
+        archivos: [] as File[],
+        collectionId: item.document.documentCollectionId,
+      }));
+      setDocumentos(initialized);
+      // Cargar nodos existentes
+      initialized.forEach((doc) => {
+        if (doc.collectionId) {
+          loadNodes(doc.collectionId);
+        }
+      });
+    }
+  };
+
+  // Inicializar documentos cuando se carguen los otherDocuments
+  useEffect(() => {
+    initializeDocumentsFromOtherDocuments();
+  }, [otherDocuments]);
+
+  // Limpiar mensaje después de 5 segundos
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  // Limpiar error después de 5 segundos
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -181,24 +240,20 @@ export function OtrosDocumentos({
     setSubmitted(true);
 
     for (const doc of documentos) {
-      if (!doc.nombre || !doc.entidad || !doc.fechaExpedicion) {
+      if (!doc.nombre || !doc.entidad) {
         setError("Todos los campos marcados con * son obligatorios.");
         setSaving(false);
         return;
       }
     }
 
-    if (!documentTypeId) {
-      setError("No se pudo obtener el tipo de documento. Intenta de nuevo.");
-      setSaving(false);
-      return;
-    }
-
     try {
       await uploadOtrosDocumentos({
-        documentTypeId,
+        documentTypeId: 6, // ID para otros documentos
         vehicleId: String(_vehicleId),
         documents: documentos.map((doc) => ({
+          id: Number(doc.id),
+          otherDocumentId: doc.otherDocumentId,
           files: doc.archivos,
           name: doc.nombre,
           entity: doc.entidad,
@@ -207,12 +262,13 @@ export function OtrosDocumentos({
             ? (formatToDD_MM_YYYY(doc.fechaVencimiento) ?? doc.fechaVencimiento)
             : undefined,
           description: doc.observaciones || undefined,
+          collectionId: doc.collectionId,
         })),
       });
       setIsEditing(false);
       setMessage("Documentos guardados correctamente.");
       await refetch();
-      if (collectionId) await loadNodes(collectionId);
+      initializeDocumentsFromOtherDocuments();
     } catch {
       setError("Error al guardar los documentos. Intenta de nuevo.");
     } finally {
@@ -222,6 +278,111 @@ export function OtrosDocumentos({
 
   return (
     <>
+      <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {deleteType === "node" && "¿Está seguro de que desea eliminar este archivo? Esta acción no se puede deshacer."}
+            {deleteType === "document" && "¿Está seguro de que desea eliminar este documento? Esta acción no se puede deshacer."}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteOpen(false)} sx={{ textTransform: "none" }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
+                setDeleting(true);
+                const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+
+                if (deleteType === "node" && deleteId) {
+                  // Eliminar archivo (node) dentro de un documento
+                  try {
+                    await httpDelete(`/vehicledocument/nodes/${deleteId}`, { baseUrl });
+                  } catch {
+                    // Ignore errors en caso de que sea 204 No Content
+                  }
+                  
+                  setExistingNodes((prev) => {
+                    const newMap = new Map(prev);
+                    for (const [key, nodes] of newMap.entries()) {
+                      newMap.set(key, nodes.filter((n) => n.nodeId !== deleteId));
+                    }
+                    return newMap;
+                  });
+                  setMessage("Archivo eliminado correctamente.");
+                  setConfirmDeleteOpen(false);
+                  setDeleting(false);
+                  setDeleteType(null);
+                  setDeleteId(null);
+                  setDeleteDocIndex(null);
+                  
+                } else if (deleteType === "document" && deleteId && deleteDocIndex !== null) {
+                  // Eliminar registro completo de vehicleDocument
+                  try {
+                    await httpDelete(`/vehicledocument/vehicledocument/${deleteId}`, { baseUrl });
+                  } catch {
+                    // Ignore errors en caso de que sea 204 No Content
+                  }
+                  
+                  // Cerrar dialog
+                  setConfirmDeleteOpen(false);
+                  
+                  // Actualizar estado local
+                  setDocumentos((prevDocs) => {
+                    const updatedDocs = prevDocs.filter((_, idx) => idx !== deleteDocIndex);
+                    return updatedDocs.length > 0 
+                      ? updatedDocs
+                      : [
+                          {
+                            id: null,
+                            otherDocumentId: null,
+                            nombre: "",
+                            entidad: "",
+                            fechaExpedicion: "",
+                            fechaVencimiento: "",
+                            observaciones: "",
+                            archivos: [],
+                          },
+                        ];
+                  });
+
+                  setMessage("Documento eliminado correctamente.");
+                  
+                  // Resetear los estados
+                  setDeleting(false);
+                  setDeleteType(null);
+                  setDeleteId(null);
+                  setDeleteDocIndex(null);
+                  
+                  // Refrescar la data del hook
+                  await refetch();
+                }
+              } catch (err) {
+                setError("No se pudo eliminar el elemento.");
+                setConfirmDeleteOpen(false);
+                setDeleting(false);
+                setDeleteType(null);
+                setDeleteId(null);
+                setDeleteDocIndex(null);
+              }
+            }}
+            color="error"
+            variant="contained"
+            disabled={deleting}
+            sx={{ textTransform: "none" }}
+          >
+            {deleting ? "Eliminando..." : "Eliminar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {loadingError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {loadingError}
+        </Alert>
+      )}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -263,7 +424,7 @@ export function OtrosDocumentos({
             </Typography>
             {isEditing && documentos.length > 1 && (
               <IconButton
-                onClick={() => removeDocumento(docIndex)}
+                onClick={() => removeDocumento(docIndex, doc.id)}
                 sx={{
                   color: theme.palette.error.main,
                   "&:hover": {
@@ -322,14 +483,15 @@ export function OtrosDocumentos({
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Fecha expedición *"
+                label="Fecha expedición"
                 type="date"
                 value={doc.fechaExpedicion}
                 variant="outlined"
                 size="small"
                 required
                 disabled={!isEditing}
-                error={submitted && !doc.fechaExpedicion}
+                // error={submitted}
+                // error={submitted && !doc.fechaExpedicion}
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -407,7 +569,7 @@ export function OtrosDocumentos({
               Archivos
             </Typography>
 
-            {docIndex === 0 && existingNodes.map((node) => (
+            {doc.collectionId && existingNodes.get(doc.collectionId)?.map((node) => (
               <Box
                 key={node.nodeId}
                 sx={{
@@ -561,7 +723,7 @@ export function OtrosDocumentos({
               </Box>
             )}
 
-            {doc.archivos.length === 0 && !(docIndex === 0 && existingNodes.length > 0) && (
+            {doc.archivos.length === 0 && !(doc.collectionId && (existingNodes.get(doc.collectionId)?.length ?? 0) > 0) && (
               <Typography
                 sx={{
                   fontSize: "0.9rem",

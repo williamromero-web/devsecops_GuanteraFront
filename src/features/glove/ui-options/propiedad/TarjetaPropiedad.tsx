@@ -75,8 +75,6 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
           getDocumentTypeByCode("TC"),
         ]);
 
-        console.log("docTypeRes.data.id: ", docTypeRes.data.id);
-        
         setDocumentTypeId(String(docTypeRes.data.id));
 
         const property = response.data.propertyCard;
@@ -275,6 +273,64 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
                 }}
               />
             </Grid>
+            <Grid size={{ xs: 12 }}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+                {isEditing && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<CancelIcon />}
+                    onClick={handleCancel}
+                    sx={{
+                      borderColor: theme.palette.text.secondary,
+                      color: theme.palette.text.secondary,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      px: 3,
+                      py: 1.5,
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: theme.palette.text.secondary,
+                        bgcolor: surfaceAlt,
+                      },
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
+                  disabled={
+                    isEditing &&
+                    (saving ||
+                      ((propertyNumber || "").trim() === (originalPropertyNumber || "").trim() && !fileChanged))
+                  }
+                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                  sx={{
+                    bgcolor: theme.palette.primary.light,
+                    color: "#000",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 2,
+                    "&:hover": {
+                      bgcolor: theme.palette.primary.main,
+                    },
+                    "&:disabled": {
+                      bgcolor: theme.palette.action.disabledBackground,
+                      color: theme.palette.action.disabled,
+                    },
+                  }}
+                >
+                  {(() => {
+                    if (!isEditing) return "Editar";
+                    if (saving) return "Guardando...";
+                    return Object.values(nodeFiles).some((nf) => nf.hasFile) ? "Actualizar" : "Guardar";
+                  })()}
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
         )}
       </Paper>
@@ -371,63 +427,6 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
           </Box>
         )}
       </Paper>
-
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-        {isEditing && (
-          <Button
-            variant="outlined"
-            startIcon={<CancelIcon />}
-            onClick={handleCancel}
-            sx={{
-              borderColor,
-              color: theme.palette.text.secondary,
-              fontWeight: 600,
-              textTransform: "none",
-              px: 3,
-              py: 1.5,
-              borderRadius: 2,
-              "&:hover": {
-                borderColor: theme.palette.text.secondary,
-                bgcolor: surfaceAlt,
-              },
-            }}
-          >
-            Cancelar
-          </Button>
-        )}
-        <Button
-          variant="contained"
-          startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-          disabled={
-            isEditing &&
-            (saving ||
-              ((propertyNumber || "").trim() === (originalPropertyNumber || "").trim() && !fileChanged))
-          }
-          onClick={isEditing ? handleSave : () => setIsEditing(true)}
-          sx={{
-            bgcolor: theme.palette.primary.light,
-            color: "#000",
-            fontWeight: 600,
-            textTransform: "none",
-            px: 3,
-            py: 1.5,
-            borderRadius: 2,
-            "&:hover": {
-              bgcolor: theme.palette.primary.main,
-            },
-            "&:disabled": {
-              bgcolor: theme.palette.action.disabledBackground,
-              color: theme.palette.action.disabled,
-            },
-          }}
-        >
-          {(() => {
-            if (!isEditing) return "Editar";
-            if (saving) return "Guardando...";
-            return Object.values(nodeFiles).some((nf) => nf.hasFile) ? "Actualizar" : "Guardar";
-          })()}
-        </Button>
-      </Box>
     </Box>
   );
 }

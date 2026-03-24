@@ -26,8 +26,6 @@ export function GuanteraOptionPage() {
   const optionItem = findOption(moduleKey, option ?? "") ?? null;
   const optionLabel = optionItem?.label ?? option ?? "Opción";
 
-  console.log("option vehicleId", vehicleId);
-  
   const { vehicle } = useVehicle(plate);
   const isActive = (() => {
     if (!vehicle) return true;

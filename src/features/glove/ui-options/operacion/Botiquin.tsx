@@ -3,10 +3,8 @@ import {
   Box,
   Button,
   FormControlLabel,
-  Grid,
   Paper,
   Switch,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -15,13 +13,24 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface BotiquinProps {
   plate: string;
+  vehicleId: number;
 }
 
-export function Botiquin({ plate: _plate }: Readonly<BotiquinProps>) {
+const FIRST_AID_KIT_ITEMS = [
+  { id: "cotton", label: "Algodón", apiKey: "cotton" },
+  { id: "elastic_band", label: "Banda elástica", apiKey: "elastic_band" },
+  { id: "soap", label: "Jabón", apiKey: "soap" },
+  { id: "cutting_tool", label: "Herramienta de corte", apiKey: "cutting_tool" },
+  { id: "sterile_gauze", label: "Gasa estéril", apiKey: "sterile_gauze" },
+  { id: "painkillers", label: "Analgésicos", apiKey: "painkillers" },
+  { id: "antiseptics", label: "Antisépticos", apiKey: "antiseptics" },
+];
+
+export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<BotiquinProps>) {
   const theme = useTheme();
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -31,22 +40,72 @@ export function Botiquin({ plate: _plate }: Readonly<BotiquinProps>) {
     (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
     theme.palette.background.paper ??
     theme.palette.background.default;
+  
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [firstAidKitId, setFirstAidKitId] = useState<number | null>(null);
 
-  const [botiquinPresente, setBotiquinPresente] = useState(true);
-  const [fechaVencimiento, setFechaVencimiento] = useState("2025-12-31");
+  const [kitItems, setKitItems] = useState<Record<string, boolean>>({
+    cotton: false,
+    elastic_band: false,
+    soap: false,
+    cutting_tool: false,
+    sterile_gauze: false,
+    painkillers: false,
+    antiseptics: false,
+  });
+  
+  const [currentKitItems, setCurrentKitItems] = useState(kitItems);
 
-  const currentBotiquinPresente = botiquinPresente;
-  const currentFechaVencimiento = fechaVencimiento;
+  // Fetch first aid kit data
+  useEffect(() => {
+    const fetchFirstAidKitData = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+        const response = await fetch(`${baseUrl}/firstaidkit/${_plate}`);
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch first aid kit data");
+        }
+
+        const data = await response.json();
+        if (data.success && data.data) {
+          const firstAidKitData = data.data;
+          
+          // Set ID if it exists
+          if (firstAidKitData.id) {
+            setFirstAidKitId(firstAidKitData.id);
+          }
+
+          // Map API response to component state
+          const mappedKitItems = {
+            cotton: firstAidKitData.cotton ?? false,
+            elastic_band: firstAidKitData.elastic_band ?? false,
+            soap: firstAidKitData.soap ?? false,
+            cutting_tool: firstAidKitData.cutting_tool ?? false,
+            sterile_gauze: firstAidKitData.sterile_gauze ?? false,
+            painkillers: firstAidKitData.painkillers ?? false,
+            antiseptics: firstAidKitData.antiseptics ?? false,
+          };
+          
+          setKitItems(mappedKitItems);
+          setCurrentKitItems(mappedKitItems);
+        }
+      } catch (err) {
+        console.error("Error fetching first aid kit data:", err);
+        setError("Error al cargar los datos del botiquín");
+      }
+    };
+
+    fetchFirstAidKitData();
+  }, [_plate]);
 
   const handleCancel = () => {
     setIsEditing(false);
-    setBotiquinPresente(currentBotiquinPresente);
-    setFechaVencimiento(currentFechaVencimiento);
+    setKitItems(currentKitItems);
     setError(null);
     setMessage(null);
   };
@@ -55,10 +114,61 @@ export function Botiquin({ plate: _plate }: Readonly<BotiquinProps>) {
     setSaving(true);
     setError(null);
     setMessage(null);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Información del botiquín guardada correctamente (mock).");
+    
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      
+      // Map component state to API request format
+      const payload = {
+        cotton: kitItems.cotton,
+        elasticBand: kitItems.elastic_band,
+        soap: kitItems.soap,
+        cuttingTool: kitItems.cutting_tool,
+        sterileGauze: kitItems.sterile_gauze,
+        painkillers: kitItems.painkillers,
+        antiseptics: kitItems.antiseptics,
+        vehicleId: _vehicleId,
+      };
+
+      let response;
+      if (firstAidKitId) {
+        // PUT request - update existing record
+        response = await fetch(`${baseUrl}/firstaidkit/firstaidkit/${firstAidKitId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // POST request - create new record
+        response = await fetch(`${baseUrl}/firstaidkit/firstaidkit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to save first aid kit data");
+      }
+
+      const result = await response.json();
+      if (result.success && result.data && result.data.id) {
+        setFirstAidKitId(result.data.id);
+      }
+
+      setCurrentKitItems(kitItems);
+      setIsEditing(false);
+      setMessage("Información del botiquín guardada correctamente.");
+    } catch (err) {
+      console.error("Error saving first aid kit data:", err);
+      setError("Error al guardar los datos del botiquín. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -120,49 +230,31 @@ export function Botiquin({ plate: _plate }: Readonly<BotiquinProps>) {
 
         {infoExpanded && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={botiquinPresente}
-                  onChange={(e) => setBotiquinPresente(e.target.checked)}
-                  disabled={!isEditing}
-                />
-              }
-              label={
-                <Typography
-                  sx={{
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    color: theme.palette.text.primary,
-                  }}
-                >
-                  Botiquín presente
-                </Typography>
-              }
-            />
-            {botiquinPresente && (
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Fecha de vencimiento"
-                    type="date"
-                    value={fechaVencimiento}
-                    onChange={(e) => setFechaVencimiento(e.target.value)}
+            {FIRST_AID_KIT_ITEMS.map((item) => (
+              <FormControlLabel
+                key={item.id}
+                control={
+                  <Switch
+                    checked={kitItems[item.id] ?? false}
+                    onChange={(e) =>
+                      setKitItems({ ...kitItems, [item.id]: e.target.checked })
+                    }
                     disabled={!isEditing}
-                    variant="outlined"
-                    size="small"
-                    InputLabelProps={{ shrink: true }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        bgcolor: theme.palette.background.paper,
-                        color: theme.palette.text.primary,
-                      },
-                    }}
                   />
-                </Grid>
-              </Grid>
-            )}
+                }
+                label={
+                  <Typography
+                    sx={{
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                }
+              />
+            ))}
           </Box>
         )}
       </Paper>
@@ -193,7 +285,10 @@ export function Botiquin({ plate: _plate }: Readonly<BotiquinProps>) {
           variant="contained"
           startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
           disabled={isEditing && saving}
-          onClick={isEditing ? handleSave : () => setIsEditing(true)}
+          onClick={isEditing ? handleSave : () => {
+            setCurrentKitItems(kitItems);
+            setIsEditing(true);
+          }}
           sx={{
             bgcolor: theme.palette.primary.light,
             color: "#000",

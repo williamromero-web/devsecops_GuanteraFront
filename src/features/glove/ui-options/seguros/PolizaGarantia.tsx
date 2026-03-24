@@ -65,6 +65,8 @@ export function PolizaGarantia({ plate, vehicleId: vehicleIdProp }: Readonly<Pol
     if (collectionId) await loadNodes(collectionId);
   };
 
+  const metadata = { PolicyTypeID: 4 };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       {docError ? (
@@ -136,6 +138,7 @@ export function PolizaGarantia({ plate, vehicleId: vehicleIdProp }: Readonly<Pol
                   collectionId={collectionId ?? undefined}
                   nodeId={node.nodeId}
                   onDelete={handleAfterChange}
+                  metadata={metadata}
                   onSave={async (file, newCollectionId) => {
                     setMessage(`${file.name} guardado correctamente.`);
                     const idToUse = newCollectionId ?? collectionId ?? null;
@@ -156,6 +159,7 @@ export function PolizaGarantia({ plate, vehicleId: vehicleIdProp }: Readonly<Pol
                 }
                 documentTypeId={documentTypeId}
                 collectionId={collectionId ?? undefined}
+                metadata={metadata}
                 onSave={async (file, newCollectionId) => {
                   setMessage(`${file.name} guardado correctamente.`);
                   const idToUse = newCollectionId ?? collectionId ?? null;

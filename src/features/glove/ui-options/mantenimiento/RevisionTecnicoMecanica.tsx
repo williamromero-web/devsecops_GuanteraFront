@@ -1,7 +1,7 @@
 import {
   Alert,
   Box,
-  Button,
+  // Button,
   Chip,
   Grid,
   Paper,
@@ -11,9 +11,9 @@ import {
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Cancel";
+// import EditIcon from "@mui/icons-material/Edit";
+// import SaveIcon from "@mui/icons-material/Save";
+// import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -38,14 +38,14 @@ export function RevisionTecnicoMecanica({
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
-  const surfaceAlt =
-    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
-    theme.palette.background.paper ??
-    theme.palette.background.default;
+  // const surfaceAlt =
+  //   (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+  //   theme.palette.background.paper ??
+  //   theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
+  // const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -173,21 +173,21 @@ export function RevisionTecnicoMecanica({
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.chip?.icon;
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setError(null);
-    setMessage(null);
-  };
+  // const handleCancel = () => {
+  //   setIsEditing(false);
+  //   setError(null);
+  //   setMessage(null);
+  // };
 
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    setMessage(null);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaving(false);
-    setIsEditing(false);
-    setMessage("Información y archivo guardados correctamente (mock).");
-  };
+  // const handleSave = async () => {
+  //   setSaving(true);
+  //   setError(null);
+  //   setMessage(null);
+  //   await new Promise((resolve) => setTimeout(resolve, 500));
+  //   setSaving(false);
+  //   setIsEditing(false);
+  //   setMessage("Información y archivo guardados correctamente (mock).");
+  // };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -423,7 +423,7 @@ export function RevisionTecnicoMecanica({
       </Paper>
 
       {/* Botones de acción */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+      {/* <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
         {isEditing && (
           <Button
             variant="outlined"
@@ -470,7 +470,7 @@ export function RevisionTecnicoMecanica({
         >
           {isEditing ? (saving ? "Guardando..." : "Guardar") : "Editar"}
         </Button>
-      </Box>
+      </Box> */}
     </Box>
   );
 }

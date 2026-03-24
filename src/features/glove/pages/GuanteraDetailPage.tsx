@@ -22,9 +22,6 @@ export function GuanteraDetailPage() {
   const { data, loading } = useModuleDetail(vehicleId!, module!);
   const navigate = useNavigate();
   const theme = useTheme();
-
-  console.log("vehicleId", vehicleId);
-  console.log("data detail", data);
   
   if (loading) return <div>Cargando...</div>;
 

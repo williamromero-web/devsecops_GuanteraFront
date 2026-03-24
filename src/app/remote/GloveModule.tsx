@@ -20,6 +20,7 @@ export interface GloveModuleConfig {
   } | null;
   themeMode?: "light" | "dark";
   userProfile?: {
+    licenseNumber: string | null;
     firstName: string | null;
     lastName: string | null;
     email: string | null;
