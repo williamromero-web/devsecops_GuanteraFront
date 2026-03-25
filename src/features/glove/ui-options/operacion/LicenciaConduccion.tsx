@@ -122,7 +122,9 @@ export function LicenciaConduccion({
     setNodeFiles(files);
   };
 
-  const fetchLicenseData = async (): Promise<DriverLicenseApiData | null> => {
+  const fetchLicenseData = async (
+    options?: { silent?: boolean },
+  ): Promise<DriverLicenseApiData | null> => {
     if (!licenciaNumero) return null;
 
     try {
@@ -155,7 +157,9 @@ export function LicenciaConduccion({
       return null;
     } catch (err) {
       console.error("Error fetching driving license data:", err);
-      setError("Error al cargar los datos de la licencia de conducción");
+      if (!options?.silent) {
+        setError("Error al cargar los datos de la licencia de conducción");
+      }
       return null;
     }
   };
@@ -345,12 +349,66 @@ export function LicenciaConduccion({
     }
   };
 
+  const refreshDocumentsState = async () => {
+    try {
+      const refreshedLicense = await fetchLicenseData({ silent: true });
+      const collectionIdToUse =
+        refreshedLicense?.documentCollectionId ?? documentCollectionId;
+
+      if (collectionIdToUse) {
+        await loadDocumentNodes(collectionIdToUse);
+      } else {
+        setDocumentNodes([]);
+        setNodeFiles({});
+      }
+    } catch (err) {
+      // No romper la UX cuando el backend no tiene nodos para listar.
+      console.warn("No se pudieron refrescar los nodos de documentos:", err);
+      setDocumentNodes([]);
+      setNodeFiles({});
+    }
+  };
+
   const handleSaveFrontNode = async (file: File) => {
     await handleSaveNode("Front", file, documentNodes[0]?.nodeId);
   };
 
   const handleSaveBackNode = async (file: File) => {
     await handleSaveNode("Reverse", file, documentNodes[1]?.nodeId);
+  };
+
+  const handleDeleteFrontNode = async () => {
+    const nodeId = documentNodes[0]?.nodeId;
+    if (!nodeId) return;
+
+    setNodeFiles((prev) => ({
+      ...prev,
+      [nodeId]: {
+        hasFile: false,
+        fileName: "Sin archivo",
+      },
+    }));
+
+    await refreshDocumentsState();
+    setError(null);
+    setMessage("Archivo eliminado correctamente");
+  };
+
+  const handleDeleteBackNode = async () => {
+    const nodeId = documentNodes[1]?.nodeId;
+    if (!nodeId) return;
+
+    setNodeFiles((prev) => ({
+      ...prev,
+      [nodeId]: {
+        hasFile: false,
+        fileName: "Sin archivo",
+      },
+    }));
+
+    await refreshDocumentsState();
+    setError(null);
+    setMessage("Archivo eliminado correctamente");
   };
 
   return (
@@ -630,6 +688,7 @@ export function LicenciaConduccion({
                       fileName={nodeFiles[documentNodes[0].nodeId]?.fileName ?? documentNodes[0].name}
                       fileSizeLabel={nodeFiles[documentNodes[0].nodeId]?.fileSizeLabel}
                       nodeId={nodeFiles[documentNodes[0].nodeId]?.hasFile ? documentNodes[0].nodeId : undefined}
+                      onDelete={handleDeleteFrontNode}
                       onSave={handleSaveFrontNode}
                     />
                   ) : (
@@ -652,6 +711,7 @@ export function LicenciaConduccion({
                       fileName={nodeFiles[documentNodes[1].nodeId]?.fileName ?? documentNodes[1].name}
                       fileSizeLabel={nodeFiles[documentNodes[1].nodeId]?.fileSizeLabel}
                       nodeId={nodeFiles[documentNodes[1].nodeId]?.hasFile ? documentNodes[1].nodeId : undefined}
+                      onDelete={handleDeleteBackNode}
                       onSave={handleSaveBackNode}
                     />
                   ) : (
