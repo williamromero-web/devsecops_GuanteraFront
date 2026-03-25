@@ -35,13 +35,19 @@ export async function getPropertyCard(plate: string): Promise<PropertyCardRespon
 }
 
 export async function getVehicleDocumentNodes(documentCollectionId: string): Promise<VehicleDocumentNode[]> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const response = await fetch(`${baseUrl}/vehicledocument/nodes/${documentCollectionId}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch vehicle document nodes");
+  try {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+    const response = await fetch(`${baseUrl}/vehicledocument/nodes/${documentCollectionId}`);
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const json = await response.json() as { success: boolean; data?: VehicleDocumentNode[] | null };
+    return json.data ?? [];
+  } catch {
+    return [];
   }
-  const json = await response.json() as { success: boolean; data: VehicleDocumentNode[] };
-  return json.data;
 }
 
 export async function updatePropertyCardNumber(
