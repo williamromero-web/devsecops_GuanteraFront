@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && aws s3 sync dist/ s3://simon-dev-refactor-guantera --delete",
+    "invalidate": "aws cloudfront create-invalidation --distribution-id E178YAA72SMNW0 --paths '/*'",
+    "deploy-full": "npm run deploy && npm run invalidate"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

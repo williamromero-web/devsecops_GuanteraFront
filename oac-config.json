@@ -1,0 +1,7 @@
+{
+  "Name": "OAC-S3-Glove",
+  "Description": "Acceso para Glove SPA",
+  "SigningProtocol": "sigv4",
+  "SigningBehavior": "always",
+  "OriginAccessControlOriginType": "s3"
+}
