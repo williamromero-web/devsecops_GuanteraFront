@@ -54,3 +54,25 @@ npm run dev
 - **ESLint** - Linter para mantener calidad de código
 
 ---
+
+## Despliegue en CloudFront
+
+Este microfrontend se publica en S3 + CloudFront y es consumido desde otro frontend vía Module Federation.
+
+Antes del primer despliegue, asegúrate de tener en la raíz estos archivos de infraestructura:
+
+- `oac-config.json`
+- `dist-config.json`
+- `policy.json`
+- `response-headers-policy.json`
+
+La policy `response-headers-policy.json` es obligatoria para servir con CORS `remoteEntry.js`, los chunks expuestos y los assets bajo `assets/`.
+
+Creación de la policy:
+
+```bash
+aws cloudfront create-response-headers-policy \
+	--response-headers-policy-config file://response-headers-policy.json
+```
+
+Si la distribución ya existe, debes asociar el `ResponseHeadersPolicy.Id` al `DefaultCacheBehavior` y luego invalidar CloudFront.

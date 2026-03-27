@@ -1,0 +1,24 @@
+{
+	"Name": "simon-mf-assets-cors",
+	"Comment": "CORS para remoteEntry.js y chunks de microfrontends",
+	"CorsConfig": {
+		"AccessControlAllowCredentials": false,
+		"AccessControlAllowHeaders": {
+			"Quantity": 1,
+			"Items": ["*"]
+		},
+		"AccessControlAllowMethods": {
+			"Quantity": 3,
+			"Items": ["GET", "HEAD", "OPTIONS"]
+		},
+		"AccessControlAllowOrigins": {
+			"Quantity": 1,
+			"Items": ["*"]
+		},
+		"AccessControlExposeHeaders": {
+			"Quantity": 0
+		},
+		"AccessControlMaxAgeSec": 600,
+		"OriginOverride": true
+	}
+}
