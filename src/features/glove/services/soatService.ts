@@ -51,7 +51,7 @@ export async function fetchSoatData(
   apiUrl?: string,
 ): Promise<SoatData> {
   const baseUrl =
-    apiUrl || (import.meta.env.VITE_API_BASE_URL as string | undefined) || "http://localhost:8080";
+    apiUrl || (import.meta.env.VITE_API_BASE_URL as string | undefined) || "http://localhost:8087/glove";
 
   const url = `${baseUrl}/insurancepolicy/module/soat/${encodeURIComponent(plate)}`;
 

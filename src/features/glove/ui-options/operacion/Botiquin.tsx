@@ -64,7 +64,7 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
   useEffect(() => {
     const fetchFirstAidKitData = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
         const response = await fetch(`${baseUrl}/firstaidkit/${_plate}`);
         
         if (!response.ok) {
@@ -116,7 +116,7 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
     setMessage(null);
     
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       
       // Map component state to API request format
       const payload = {

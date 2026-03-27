@@ -23,7 +23,7 @@ export interface VehicleDocumentNode {
 }
 
 export async function getPropertyCard(plate: string): Promise<PropertyCardResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
 
   const response = await fetch(`${baseUrl}/propertycard/module/${plate}`);
 
@@ -36,7 +36,7 @@ export async function getPropertyCard(plate: string): Promise<PropertyCardRespon
 
 export async function getVehicleDocumentNodes(documentCollectionId: string): Promise<VehicleDocumentNode[]> {
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
     const response = await fetch(`${baseUrl}/vehicledocument/nodes/${documentCollectionId}`);
 
     if (!response.ok) {
@@ -54,7 +54,7 @@ export async function updatePropertyCardNumber(
   id: number,
   cardnumber: string
 ) {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
 
   const response = await fetch(`${baseUrl}/propertycard/cardnumber/${id}`, {
     method: "PUT",
