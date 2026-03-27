@@ -34,7 +34,7 @@ export async function fetchVehiclesModules(
   plates: string[],
   apiUrl?: string
 ): Promise<VehicleStatus[]> {
-  const baseUrl = apiUrl || import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const baseUrl = apiUrl || import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
   const url = `${baseUrl}/vehicle/modules`;
 
   try {
@@ -69,7 +69,7 @@ export async function getModuleDetail(
   vehicleId: string,
   moduleKey: string
 ): Promise<ModuleDetailResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
   const url = `${baseUrl}/vehicledocument/${vehicleId}/modules/${moduleKey}`;
   try {
     const response = await fetch(url, {

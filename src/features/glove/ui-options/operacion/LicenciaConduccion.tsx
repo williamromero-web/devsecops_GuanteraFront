@@ -128,7 +128,7 @@ export function LicenciaConduccion({
     if (!licenciaNumero) return null;
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       const response = await fetch(`${baseUrl}/driverlicense/${licenciaNumero}`);
 
       if (!response.ok) {
@@ -203,7 +203,7 @@ export function LicenciaConduccion({
       setError(null);
       setMessage(null);
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       const payload = {
         driverLinceCategories: categorias
           .filter(cat => cat.categoryType && cat.expiredDate)
@@ -265,7 +265,7 @@ export function LicenciaConduccion({
 
     try {
       setConfirmDeleteOpen(false);
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       
       try {
         const response = await fetch(`${baseUrl}/driverlicensecategory/category/${deleteId}`, {
@@ -306,7 +306,7 @@ export function LicenciaConduccion({
         return;
       }
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       const formData = new FormData();
       formData.append(`file${fileSide}`, file);
       if (documentCollectionId) {

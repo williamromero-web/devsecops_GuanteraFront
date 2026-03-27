@@ -42,7 +42,7 @@ interface MunicipalitiesApiResponse {
 
 const BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "http://localhost:8080";
+  "http://localhost:8087/glove";
 
 export async function fetchPypData(
   plate: string,

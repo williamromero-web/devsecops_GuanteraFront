@@ -12,7 +12,7 @@ const deps = pkg.dependencies ?? {};
 export default defineConfig({
   define: {
     __API_BASE_URL__: JSON.stringify(
-      process.env.VITE_API_BASE_URL || "http://localhost:8080",
+      process.env.VITE_API_BASE_URL || "http://localhost:8087/glove",
     ),
   },
   server: {
@@ -24,11 +24,11 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: process.env.VITE_API_BASE_URL || "http://localhost:8080",
+        target: process.env.VITE_API_BASE_URL || "http://localhost:8087/glove",
         changeOrigin: true,
       },
       "/insurancepolicy": {
-        target: process.env.VITE_API_BASE_URL || "http://localhost:8080",
+        target: process.env.VITE_API_BASE_URL || "http://localhost:8087/glove",
         changeOrigin: true,
       },
     },

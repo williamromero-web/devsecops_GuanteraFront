@@ -68,13 +68,13 @@ export interface UploadDocumentResponse {
 /**
  * Carga un documento en el endpoint POST /vehicledocument/upload
  * @param params Parámetros del documento
- * @param apiUrl URL base del API (default: VITE_API_BASE_URL o http://localhost:8080)
+ * @param apiUrl URL base del API (default: VITE_API_BASE_URL o http://localhost:8087/glove)
  * @throws Error si falla la carga
  */
 export async function uploadDocument(
   params: DocumentUploadParams
 ): Promise<string | null> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
 
   const { documentTypeId, vehicleId, file, startDate, expiredDate, metadata, collectionId } = params;
 
@@ -128,7 +128,7 @@ export interface PolicyDocumentUploadParams {
 export async function uploadPolicyDocument(
   params: PolicyDocumentUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
 
   const { documentTypeId, vehicleId, frontFile, backFile, expiredDate, collectionId, metadata } = params;
   console.log(expiredDate);
@@ -179,7 +179,7 @@ export interface PropertyCardDocumentUploadParams {
 export async function uploadPropertyCardDocuments(
   params: PropertyCardDocumentUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
 
   const { documentTypeId, vehicleId, frontFile, backFile, startDate, expiredDate, collectionId, metadata } = params;
 
@@ -227,7 +227,7 @@ export interface MultipleDocumentUploadParams {
 export async function uploadMultipleDocuments(
   params: MultipleDocumentUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
 
   const { documentTypeId, vehicleId, files, startDate, expiredDate, metadata } = params;
 
@@ -275,7 +275,7 @@ export interface DocumentTypeApiResponse {
 }
 
 export async function getDocumentTypeByCode(code: string): Promise<DocumentTypeApiResponse> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
   return httpGet<DocumentTypeApiResponse>(`/vehicledocument/documenttype/${code}`, { baseUrl });
 }
 
@@ -298,7 +298,7 @@ export async function fetchVehicleDocumentInfo(
   vehicleId: string | number,
   documentTypeId: string | number,
 ): Promise<ApiVehicleDocumentInfoResponse> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
   return httpGet<ApiVehicleDocumentInfoResponse>(
     `/vehicledocument/info/${vehicleId}/${documentTypeId}`,
     { baseUrl },
@@ -326,7 +326,7 @@ export interface OtrosDocumentosUploadParams {
 export async function uploadOtrosDocumentos(
   params: OtrosDocumentosUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
 
   const { documentTypeId, vehicleId, documents } = params;
 
