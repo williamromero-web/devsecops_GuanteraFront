@@ -14,7 +14,7 @@ export interface RTMResponse {
 }
 
 export async function getRTM(plate: string): Promise<RTMResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
 
   const response = await fetch(`${baseUrl}/rtm/module/${plate}`);
 

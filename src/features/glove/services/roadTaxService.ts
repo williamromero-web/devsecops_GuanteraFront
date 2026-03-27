@@ -23,7 +23,7 @@ export interface RoadTaxResponse {
 }
 
 export async function getRoadTax(plate: string): Promise<RoadTaxResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
 
   const response = await fetch(`${baseUrl}/roadtax/module/${plate}`);
 
