@@ -33,7 +33,7 @@ const sharedDependencies = {
   },
 } as unknown as NonNullable<Parameters<typeof federation>[0]["shared"]>;
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 5174,
     strictPort: true,
@@ -44,8 +44,8 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    minify: false,
-    sourcemap: true,
+    minify: mode === "production",
+    sourcemap: mode === "development",
   },
   plugins: [
     react(),
@@ -58,4 +58,4 @@ export default defineConfig({
       shared: sharedDependencies,
     }),
   ],
-});
+}));
