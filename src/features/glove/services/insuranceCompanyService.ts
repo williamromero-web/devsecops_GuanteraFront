@@ -1,3 +1,5 @@
+import { httpGet } from "../lib/httpClient";
+
 export interface Insurer {
   id: number;
   code: string;
@@ -11,14 +13,8 @@ export interface InsurersResponse {
 }
 
 export async function getInsurers(): Promise<Insurer[]> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
-  const response = await fetch(`${baseUrl}/insurancepolicy/dropdown/insurers`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch insurers");
-  }
-
-  const json: InsurersResponse = await response.json();
+  const json = await httpGet<InsurersResponse>(
+    "/insurancepolicy/dropdown/insurers",
+  );
   return json.data;
 }

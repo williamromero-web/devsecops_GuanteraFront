@@ -4,6 +4,7 @@ import { GuanteraProvider } from "../../features/glove/providers/GuanteraProvide
 import { GuanteraPage } from "../../features/glove/pages/GuanteraPage";
 import { GuanteraDetailPage } from "../../features/glove/pages/GuanteraDetailPage";
 import { GuanteraOptionPage } from "../../features/glove/pages/GuanteraOptionPage";
+import { setApiClientConfig } from "../../features/glove/lib/httpClient";
 import { palette } from "../../shared/theme/palette";
 import tokens from "../../shared/theme/tokens.json";
 
@@ -42,6 +43,11 @@ export default function GloveModule({
       borderRadius: tokens.borderRadius.xl,
     },
     palette: palette(null, darkMode),
+  });
+
+  setApiClientConfig({
+    baseUrl: config?.baseUrl,
+    getAuthHeaders: config?.getAuthHeaders,
   });
 
   const content = (

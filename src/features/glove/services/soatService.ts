@@ -1,3 +1,5 @@
+import { httpGet } from "../lib/httpClient";
+
 /**
  * Service to fetch SOAT data from the backend
  */
@@ -44,23 +46,16 @@ export interface SoatData {
 /**
  * Fetches SOAT data from the backend by license plate
  * @param plate Vehicle license plate
- * @param apiUrl API base URL (default: VITE_API_BASE_URL)
+ * @param apiUrl API base URL opcional
  */
 export async function fetchSoatData(
   plate: string,
   apiUrl?: string,
 ): Promise<SoatData> {
-  const baseUrl =
-    apiUrl || (import.meta.env.VITE_API_BASE_URL as string | undefined) || "http://localhost:8087/glove";
-
-  const url = `${baseUrl}/insurancepolicy/module/soat/${encodeURIComponent(plate)}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch SOAT data: HTTP ${response.status}`);
-  }
-
-  const data: SoatApiResponse = await response.json();
+  const data = await httpGet<SoatApiResponse>(
+    `/insurancepolicy/module/soat/${encodeURIComponent(plate)}`,
+    { baseUrl: apiUrl },
+  );
 
   // Flexible field mapping from API response
   const policyNumber = data.number || data.numeroPoliza || data.policyNumber || data.policy || "";

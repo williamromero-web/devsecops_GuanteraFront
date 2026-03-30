@@ -26,6 +26,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useState, useEffect } from "react";
 import { useGuanteraConfig } from "../../providers/GuanteraProvider";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules";
+import { httpDelete, httpGet, httpPut, httpPutForm } from "../../lib/httpClient";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
 
 const TipoCategoria = {
@@ -64,8 +65,8 @@ export interface LicenciaConduccionProps {
 }
 
 export function LicenciaConduccion({
-  plate: _plate,
-  vehicleId: _vehicleId,
+  plate,
+  vehicleId,
 }: Readonly<LicenciaConduccionProps>) {
   const theme = useTheme();
 
@@ -128,14 +129,9 @@ export function LicenciaConduccion({
     if (!licenciaNumero) return null;
 
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-      const response = await fetch(`${baseUrl}/driverlicense/${licenciaNumero}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch driving license data");
-      }
-
-      const data = (await response.json()) as DriverLicenseApiResponse;
+      const data = await httpGet<DriverLicenseApiResponse>(
+        `/driverlicense/${licenciaNumero}`,
+      );
       if (data.success && data.data) {
         const licenseData = data.data;
         setLicesnseId(licenseData.id);
@@ -203,7 +199,6 @@ export function LicenciaConduccion({
       setError(null);
       setMessage(null);
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       const payload = {
         driverLinceCategories: categorias
           .filter(cat => cat.categoryType && cat.expiredDate)
@@ -214,17 +209,7 @@ export function LicenciaConduccion({
           })),
       };
 
-      const response = await fetch(`${baseUrl}/driverlicense/driverlicense/${licenseId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save driving license");
-      }
+      await httpPut(`/driverlicense/driverlicense/${licenseId}`, payload);
 
       setIsEditing(false);
       setMessage("Información de la licencia guardada correctamente.");
@@ -265,18 +250,11 @@ export function LicenciaConduccion({
 
     try {
       setConfirmDeleteOpen(false);
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       
       try {
-        const response = await fetch(`${baseUrl}/driverlicensecategory/category/${deleteId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok && response.status !== 204) {
-          throw new Error("Failed to delete category");
-        }
+        await httpDelete(`/driverlicensecategory/category/${deleteId}`);
       } catch {
-        // Ignore error - 204 is expected
+        // Ignore delete errors to keep UX resilient
       }
 
       setCategorias((prev) => prev.filter((cat) => cat.id !== deleteId));
@@ -306,21 +284,13 @@ export function LicenciaConduccion({
         return;
       }
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
       const formData = new FormData();
       formData.append(`file${fileSide}`, file);
       if (documentCollectionId) {
         formData.append("collectionId", documentCollectionId);
       }
       
-      const response = await fetch(`${baseUrl}/driverlicense/upload/${licenseId}`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
-      }
+      await httpPutForm(`/driverlicense/upload/${licenseId}`, formData);
 
       // Si no existía colección/nodos, refrescamos para obtenerlos y asociar nodeId reales.
       const refreshedLicense = await fetchLicenseData();
@@ -706,7 +676,7 @@ export function LicenciaConduccion({
                   {documentNodes[1] ? (
                     <DocumentUploadCard
                       key={documentNodes[1].nodeId}
-                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}).`}
+                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}).`}
                       hasFile={nodeFiles[documentNodes[1].nodeId]?.hasFile ?? false}
                       fileName={nodeFiles[documentNodes[1].nodeId]?.fileName ?? documentNodes[1].name}
                       fileSizeLabel={nodeFiles[documentNodes[1].nodeId]?.fileSizeLabel}
@@ -716,7 +686,7 @@ export function LicenciaConduccion({
                     />
                   ) : (
                     <DocumentUploadCard
-                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}).`}
+                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}, Vehículo: ${vehicleId}).`}
                       hasFile={false}
                       fileName="Sin archivo"
                       onSave={handleSaveBackNode}

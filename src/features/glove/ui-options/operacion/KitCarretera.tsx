@@ -16,6 +16,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useState, useEffect } from "react";
+import { httpGet, httpPost, httpPut } from "../../lib/httpClient";
 
 export interface KitCarreteraProps {
   plate: string;
@@ -43,6 +44,33 @@ const KIT_ITEMS = [
     description: "Básicas",
   },
 ];
+
+interface RoadKitApiData {
+  id?: number;
+  jack?: boolean;
+  road_signs?: boolean;
+  flashlight?: boolean;
+  spare_tire?: boolean;
+  lug_wrench?: boolean;
+  wheel_chocks?: boolean;
+  toolbox?: boolean;
+  has_extinguisher?: boolean;
+}
+
+interface RoadKitPayload {
+  jack: boolean;
+  roadSigns: boolean;
+  flashlight: boolean;
+  spareTire: boolean;
+  lugWrench: boolean;
+  wheelChocks: boolean;
+  toolbox: boolean;
+  vehicleId: number;
+  FireExtinguisher?: {
+    hasExtinguisher: boolean;
+    refillDate: string;
+  };
+}
 
 export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<KitCarreteraProps>) {
   const theme = useTheme();
@@ -77,14 +105,9 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
   useEffect(() => {
     const fetchRoadKitData = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-        const response = await fetch(`${baseUrl}/roadkit/${_plate}`);
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch road kit data");
-        }
-
-        const data = await response.json();
+        const data = await httpGet<{ success: boolean; data?: RoadKitApiData }>(
+          `/roadkit/${_plate}`,
+        );
         if (data.success && data.data) {
           const roadKitData = data.data;
           
@@ -140,10 +163,8 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
         return;
       }
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-      
       // Map component state to API request format
-      const payload: any = {
+      const payload: RoadKitPayload = {
         jack: kitItems.gato,
         roadSigns: kitItems.senales,
         flashlight: kitItems.linterna,
@@ -166,32 +187,21 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
         };
       }
 
-      let response;
+      let result: { success?: boolean; data?: { id?: number } };
       if (roadKitId) {
         // PUT request - update existing record
-        response = await fetch(`${baseUrl}/roadkit/roadkit/${roadKitId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+        result = await httpPut<{ success?: boolean; data?: { id?: number } }>(
+          `/roadkit/roadkit/${roadKitId}`,
+          payload,
+        );
       } else {
         // POST request - create new record
-        response = await fetch(`${baseUrl}/roadkit/roadkit`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+        result = await httpPost<{ success?: boolean; data?: { id?: number } }>(
+          "/roadkit/roadkit",
+          payload,
+        );
       }
 
-      if (!response.ok) {
-        throw new Error("Failed to save road kit data");
-      }
-
-      const result = await response.json();
       if (result.success && result.data && result.data.id) {
         setRoadKitId(result.data.id);
       }

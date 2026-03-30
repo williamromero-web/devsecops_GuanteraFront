@@ -1,4 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo } from "react";
+import type { HttpClientOptions } from "../lib/httpClient";
 import type { FetchDevicesFunction } from "../types/devices";
 
 export interface DevicesApiConfig {
@@ -75,4 +77,16 @@ export function GuanteraProvider({
 
 export function useGuanteraConfig(): GuanteraConfig {
   return useContext(GuanteraContext);
+}
+
+export function useGuanteraApiOptions(): HttpClientOptions {
+  const { baseUrl, getAuthHeaders } = useGuanteraConfig();
+
+  return useMemo(
+    () => ({
+      baseUrl: baseUrl ?? undefined,
+      getHeaders: getAuthHeaders,
+    }),
+    [baseUrl, getAuthHeaders],
+  );
 }

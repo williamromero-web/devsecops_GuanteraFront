@@ -1,3 +1,5 @@
+import { httpGet, httpPut } from "../lib/httpClient";
+
 export interface PropertyCardResponse {
   success: boolean;
   data: {
@@ -23,27 +25,14 @@ export interface VehicleDocumentNode {
 }
 
 export async function getPropertyCard(plate: string): Promise<PropertyCardResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
-  const response = await fetch(`${baseUrl}/propertycard/module/${plate}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch RTM");
-  }
-
-  return await response.json();
+  return httpGet<PropertyCardResponse>(`/propertycard/module/${plate}`);
 }
 
 export async function getVehicleDocumentNodes(documentCollectionId: string): Promise<VehicleDocumentNode[]> {
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-    const response = await fetch(`${baseUrl}/vehicledocument/nodes/${documentCollectionId}`);
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const json = await response.json() as { success: boolean; data?: VehicleDocumentNode[] | null };
+    const json = await httpGet<{ success: boolean; data?: VehicleDocumentNode[] | null }>(
+      `/vehicledocument/nodes/${documentCollectionId}`,
+    );
     return json.data ?? [];
   } catch {
     return [];
@@ -54,21 +43,7 @@ export async function updatePropertyCardNumber(
   id: number,
   cardnumber: string
 ) {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
-  const response = await fetch(`${baseUrl}/propertycard/cardnumber/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      "cardNumber": cardnumber
-    }),
+  return httpPut(`/propertycard/cardnumber/${id}`, {
+    cardNumber: cardnumber,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to update Property Card number");
-  }
-
-  return await response.json();
 }

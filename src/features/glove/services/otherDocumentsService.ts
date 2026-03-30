@@ -1,3 +1,5 @@
+import { httpGet } from "../lib/httpClient";
+
 export interface OtherDocumentItem {
   otherDocument: {
     id: number;
@@ -21,13 +23,5 @@ export interface OtherDocumentsResponse {
 }
 
 export async function getOtherDocuments(plate: string): Promise<OtherDocumentsResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
-  const response = await fetch(`${baseUrl}/otherdocument/module/${plate}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch other documents");
-  }
-
-  return response.json();
+  return httpGet<OtherDocumentsResponse>(`/otherdocument/module/${plate}`);
 }

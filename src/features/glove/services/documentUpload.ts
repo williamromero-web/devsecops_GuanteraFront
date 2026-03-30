@@ -1,4 +1,4 @@
-import { httpGet } from "../lib/httpClient";
+import { httpGet, httpPostForm } from "../lib/httpClient";
 
 /**
  * Servicio para cargar documentos de vehículos.
@@ -68,14 +68,12 @@ export interface UploadDocumentResponse {
 /**
  * Carga un documento en el endpoint POST /vehicledocument/upload
  * @param params Parámetros del documento
- * @param apiUrl URL base del API (default: VITE_API_BASE_URL o http://localhost:8087/glove)
+ * @param apiUrl URL base del API (se resuelve via cliente central)
  * @throws Error si falla la carga
  */
 export async function uploadDocument(
   params: DocumentUploadParams
 ): Promise<string | null> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-
   const { documentTypeId, vehicleId, file, startDate, expiredDate, metadata, collectionId } = params;
 
   const formData = new FormData();
@@ -97,20 +95,10 @@ export async function uploadDocument(
     });
   }
 
-  const url = new URL("/vehicledocument/upload", baseUrl).toString();
-
-  const response = await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Upload failed with status ${response.status}: ${response.statusText}`,
-    );
-  }
-
-  const json = await response.json() as UploadDocumentResponse;
+  const json = await httpPostForm<UploadDocumentResponse>(
+    "/vehicledocument/upload",
+    formData,
+  );
   return (json.success && json.data?.[0]) ? json.data[0] : null;
 }
 
@@ -128,8 +116,6 @@ export interface PolicyDocumentUploadParams {
 export async function uploadPolicyDocument(
   params: PolicyDocumentUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-
   const { documentTypeId, vehicleId, frontFile, backFile, expiredDate, collectionId, metadata } = params;
   console.log(expiredDate);
   
@@ -151,18 +137,7 @@ export async function uploadPolicyDocument(
     });
   }
 
-  const url = new URL("/vehicledocument/upload", baseUrl).toString();
-
-  const response = await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Upload failed with status ${response.status}: ${response.statusText}`,
-    );
-  }
+  await httpPostForm<unknown>("/vehicledocument/upload", formData);
 }
 
 export interface PropertyCardDocumentUploadParams {
@@ -179,8 +154,6 @@ export interface PropertyCardDocumentUploadParams {
 export async function uploadPropertyCardDocuments(
   params: PropertyCardDocumentUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-
   const { documentTypeId, vehicleId, frontFile, backFile, startDate, expiredDate, collectionId, metadata } = params;
 
   const formData = new FormData();
@@ -201,18 +174,7 @@ export async function uploadPropertyCardDocuments(
     });
   }
 
-  const url = new URL("/vehicledocument/upload", baseUrl).toString();
-
-  const response = await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Upload failed with status ${response.status}: ${response.statusText}`,
-    );
-  }
+  await httpPostForm<unknown>("/vehicledocument/upload", formData);
 }
 
 export interface MultipleDocumentUploadParams {
@@ -227,8 +189,6 @@ export interface MultipleDocumentUploadParams {
 export async function uploadMultipleDocuments(
   params: MultipleDocumentUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-
   const { documentTypeId, vehicleId, files, startDate, expiredDate, metadata } = params;
 
   const formData = new FormData();
@@ -251,18 +211,7 @@ export async function uploadMultipleDocuments(
     });
   }
 
-  const url = new URL("/vehicledocument/upload", baseUrl).toString();
-
-  const response = await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Upload failed with status ${response.status}: ${response.statusText}`,
-    );
-  }
+  await httpPostForm<unknown>("/vehicledocument/upload", formData);
 }
 
 export interface DocumentTypeApiResponse {
@@ -275,8 +224,7 @@ export interface DocumentTypeApiResponse {
 }
 
 export async function getDocumentTypeByCode(code: string): Promise<DocumentTypeApiResponse> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-  return httpGet<DocumentTypeApiResponse>(`/vehicledocument/documenttype/${code}`, { baseUrl });
+  return httpGet<DocumentTypeApiResponse>(`/vehicledocument/documenttype/${code}`);
 }
 
 export interface ApiVehicleDocumentInfo {
@@ -298,11 +246,7 @@ export async function fetchVehicleDocumentInfo(
   vehicleId: string | number,
   documentTypeId: string | number,
 ): Promise<ApiVehicleDocumentInfoResponse> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-  return httpGet<ApiVehicleDocumentInfoResponse>(
-    `/vehicledocument/info/${vehicleId}/${documentTypeId}`,
-    { baseUrl },
-  );
+  return httpGet<ApiVehicleDocumentInfoResponse>(`/vehicledocument/info/${vehicleId}/${documentTypeId}`);
 }
 
 export interface OtroDocumentoItem {
@@ -326,8 +270,6 @@ export interface OtrosDocumentosUploadParams {
 export async function uploadOtrosDocumentos(
   params: OtrosDocumentosUploadParams,
 ): Promise<void> {
-  const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
-
   const { documentTypeId, vehicleId, documents } = params;
 
   const formData = new FormData();
@@ -355,16 +297,5 @@ export async function uploadOtrosDocumentos(
     }
   });
 
-  const url = new URL("/vehicledocument/upload", baseUrl).toString();
-
-  const response = await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Upload failed with status ${response.status}: ${response.statusText}`,
-    );
-  }
+  await httpPostForm<unknown>("/vehicledocument/upload", formData);
 }

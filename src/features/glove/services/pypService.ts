@@ -40,10 +40,6 @@ interface MunicipalitiesApiResponse {
   data: Municipality[];
 }
 
-const BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "http://localhost:8087/glove";
-
 export async function fetchPypData(
   plate: string,
   municipalityCode?: string,
@@ -51,7 +47,7 @@ export async function fetchPypData(
   const path = municipalityCode
     ? `/pyp/${encodeURIComponent(plate)}/${encodeURIComponent(municipalityCode)}`
     : `/pyp/${encodeURIComponent(plate)}`;
-  const response = await httpGet<PypApiResponse>(path, { baseUrl: BASE_URL });
+  const response = await httpGet<PypApiResponse>(path);
   return response.data;
 }
 
@@ -62,14 +58,13 @@ export async function fetchPypCalendar(
   const path = municipalityCode
     ? `/pyp/calendar/${encodeURIComponent(plate)}/${encodeURIComponent(municipalityCode)}`
     : `/pyp/calendar/${encodeURIComponent(plate)}`;
-  const response = await httpGet<PypCalendarApiResponse>(path, { baseUrl: BASE_URL });
+  const response = await httpGet<PypCalendarApiResponse>(path);
   return response.data;
 }
 
 export async function fetchMunicipalities(): Promise<Municipality[]> {
   const response = await httpGet<MunicipalitiesApiResponse>(
     "/pyp/dropdown/municipalities",
-    { baseUrl: BASE_URL },
   );
   return response.data;
 }

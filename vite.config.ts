@@ -8,13 +8,32 @@ const pkg = require("./package.json") as {
   dependencies?: Record<string, string>;
 };
 const deps = pkg.dependencies ?? {};
+const sharedDependencies = {
+  react: { version: deps.react, singleton: true },
+  "react-dom": {
+    version: deps["react-dom"],
+    singleton: true,
+  },
+  "react-router-dom": {
+    version: deps["react-router-dom"],
+    singleton: true,
+  },
+  "@mui/material": { version: deps["@mui/material"], singleton: true },
+  "@mui/icons-material": {
+    version: deps["@mui/icons-material"],
+    singleton: true,
+  },
+  "@emotion/react": {
+    version: deps["@emotion/react"],
+    singleton: true,
+  },
+  "@emotion/styled": {
+    version: deps["@emotion/styled"],
+    singleton: true,
+  },
+} as unknown as NonNullable<Parameters<typeof federation>[0]["shared"]>;
 
 export default defineConfig({
-  define: {
-    __API_BASE_URL__: JSON.stringify(
-      process.env.VITE_API_BASE_URL || "http://localhost:8087/glove",
-    ),
-  },
   server: {
     port: 5174,
     strictPort: true,
@@ -22,19 +41,11 @@ export default defineConfig({
     headers: {
       "Access-Control-Allow-Origin": "*",
     },
-    proxy: {
-      "/api": {
-        target: process.env.VITE_API_BASE_URL || "http://localhost:8087/glove",
-        changeOrigin: true,
-      },
-      "/insurancepolicy": {
-        target: process.env.VITE_API_BASE_URL || "http://localhost:8087/glove",
-        changeOrigin: true,
-      },
-    },
   },
   build: {
     target: "esnext",
+    minify: false,
+    sourcemap: true,
   },
   plugins: [
     react(),
@@ -44,30 +55,7 @@ export default defineConfig({
       exposes: {
         "./GloveModule": "./src/app/remote/GloveModule.tsx",
       },
-      shared: {
-        react: { version: deps.react, singleton: true },
-        "react-dom": {
-          version: deps["react-dom"],
-          singleton: true,
-        },
-        "react-router-dom": {
-          version: deps["react-router-dom"],
-          singleton: true,
-        },
-        "@mui/material": { version: deps["@mui/material"], singleton: true },
-        "@mui/icons-material": {
-          version: deps["@mui/icons-material"],
-          singleton: true,
-        },
-        "@emotion/react": {
-          version: deps["@emotion/react"],
-          singleton: true,
-        },
-        "@emotion/styled": {
-          version: deps["@emotion/styled"],
-          singleton: true,
-        },
-      } as any,
+      shared: sharedDependencies,
     }),
   ],
 });

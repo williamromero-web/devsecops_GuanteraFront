@@ -1,3 +1,5 @@
+import { httpGet } from "../lib/httpClient";
+
 export interface InsurancePolicyResponse {
   success: boolean;
   data: {
@@ -28,17 +30,7 @@ export async function getInsurancePolicy(
   type: InsurancePolicyType,
   plate: string
 ): Promise<InsurancePolicyResponse> {
-
-  const baseUrl =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
-  const response = await fetch(
-    `${baseUrl}/insurancepolicy/module/${type}/${plate}`
+  return httpGet<InsurancePolicyResponse>(
+    `/insurancepolicy/module/${type}/${plate}`,
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch insurance policy");
-  }
-
-  return await response.json();
 }

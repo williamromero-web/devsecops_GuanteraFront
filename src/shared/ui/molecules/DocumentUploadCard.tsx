@@ -114,16 +114,12 @@ export function DocumentUploadCard({
   }, []);
 
   const handleDelete = async () => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
     if (!nodeId) return;
     setConfirmDeleteOpen(false);
     try {
       setDeleting(true);
       setLocalError(null);
-      await httpDelete(`/vehicledocument/nodes/${nodeId}`, {
-        baseUrl,
-      });
+      await httpDelete(`/vehicledocument/nodes/${nodeId}`);
       if (onDelete) {
         await onDelete();
       }

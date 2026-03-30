@@ -41,7 +41,7 @@ interface Document {
 
 export interface OtrosDocumentosProps {
   plate: string;
-  vehicleId: Number;
+  vehicleId: number;
 }
 
 export function OtrosDocumentos({
@@ -104,7 +104,11 @@ export function OtrosDocumentos({
     value: string,
   ) => {
     const nuevosDocumentos = [...documentos];
-    (nuevosDocumentos[index][field] as any) = value;
+    const documentoActualizado = {
+      ...nuevosDocumentos[index],
+      [field]: value,
+    } as Document;
+    nuevosDocumentos[index] = documentoActualizado;
     setDocumentos(nuevosDocumentos);
   };
 
@@ -294,12 +298,11 @@ export function OtrosDocumentos({
             onClick={async () => {
               try {
                 setDeleting(true);
-                const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8087/glove";
 
                 if (deleteType === "node" && deleteId) {
                   // Eliminar archivo (node) dentro de un documento
                   try {
-                    await httpDelete(`/vehicledocument/nodes/${deleteId}`, { baseUrl });
+                    await httpDelete(`/vehicledocument/nodes/${deleteId}`);
                   } catch {
                     // Ignore errors en caso de que sea 204 No Content
                   }
@@ -321,7 +324,7 @@ export function OtrosDocumentos({
                 } else if (deleteType === "document" && deleteId && deleteDocIndex !== null) {
                   // Eliminar registro completo de vehicleDocument
                   try {
-                    await httpDelete(`/vehicledocument/vehicledocument/${deleteId}`, { baseUrl });
+                    await httpDelete(`/vehicledocument/vehicledocument/${deleteId}`);
                   } catch {
                     // Ignore errors en caso de que sea 204 No Content
                   }
@@ -359,7 +362,7 @@ export function OtrosDocumentos({
                   // Refrescar la data del hook
                   await refetch();
                 }
-              } catch (err) {
+              } catch {
                 setError("No se pudo eliminar el elemento.");
                 setConfirmDeleteOpen(false);
                 setDeleting(false);

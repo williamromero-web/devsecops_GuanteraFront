@@ -1,3 +1,5 @@
+import { httpGet } from "../lib/httpClient";
+
 export interface RoadTax {
   id: number;
   cityRegistration: string;
@@ -23,13 +25,5 @@ export interface RoadTaxResponse {
 }
 
 export async function getRoadTax(plate: string): Promise<RoadTaxResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-
-  const response = await fetch(`${baseUrl}/roadtax/module/${plate}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch road tax");
-  }
-
-  return await response.json();
+  return httpGet<RoadTaxResponse>(`/roadtax/module/${plate}`);
 }

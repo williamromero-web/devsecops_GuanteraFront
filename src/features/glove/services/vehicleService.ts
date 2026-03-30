@@ -1,3 +1,5 @@
+import { httpGet, httpPost } from "../lib/httpClient";
+
 export interface ApiModuleResponse {
   module: string;
   color: string;
@@ -34,21 +36,12 @@ export async function fetchVehiclesModules(
   plates: string[],
   apiUrl?: string
 ): Promise<VehicleStatus[]> {
-  const baseUrl = apiUrl || import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-  const url = `${baseUrl}/vehicle/modules`;
-
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(plates),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch modules: HTTP ${response.status}`);
-    }
-
-    const result = await response.json();
+    const result = await httpPost<{ data?: ApiVehicleStatus[] }>(
+      "/vehicle/modules",
+      plates,
+      { baseUrl: apiUrl },
+    );
     const data: ApiVehicleStatus[] = result.data || [];
 
     return data.map((item) => ({
@@ -69,18 +62,10 @@ export async function getModuleDetail(
   vehicleId: string,
   moduleKey: string
 ): Promise<ModuleDetailResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-  const url = `${baseUrl}/vehicledocument/${vehicleId}/modules/${moduleKey}`;
   try {
-    const response = await fetch(url, {
-      method: "GET",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch module detail: HTTP ${response.status}`);
-    }
-
-    const json = await response.json();
+    const json = await httpGet<{ data: ModuleDetailResponse }>(
+      `/vehicledocument/${vehicleId}/modules/${moduleKey}`,
+    );
     
     return json.data;
   } catch (error) {

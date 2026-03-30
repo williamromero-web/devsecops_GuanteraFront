@@ -14,6 +14,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useState, useEffect } from "react";
+import { httpGet, httpPost, httpPut } from "../../lib/httpClient";
 
 export interface BotiquinProps {
   plate: string;
@@ -29,6 +30,17 @@ const FIRST_AID_KIT_ITEMS = [
   { id: "painkillers", label: "Analgésicos", apiKey: "painkillers" },
   { id: "antiseptics", label: "Antisépticos", apiKey: "antiseptics" },
 ];
+
+interface FirstAidKitApiData {
+  id?: number;
+  cotton?: boolean;
+  elastic_band?: boolean;
+  soap?: boolean;
+  cutting_tool?: boolean;
+  sterile_gauze?: boolean;
+  painkillers?: boolean;
+  antiseptics?: boolean;
+}
 
 export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<BotiquinProps>) {
   const theme = useTheme();
@@ -64,14 +76,9 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
   useEffect(() => {
     const fetchFirstAidKitData = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-        const response = await fetch(`${baseUrl}/firstaidkit/${_plate}`);
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch first aid kit data");
-        }
-
-        const data = await response.json();
+        const data = await httpGet<{ success: boolean; data?: FirstAidKitApiData }>(
+          `/firstaidkit/${_plate}`,
+        );
         if (data.success && data.data) {
           const firstAidKitData = data.data;
           
@@ -116,8 +123,6 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
     setMessage(null);
     
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8087/glove";
-      
       // Map component state to API request format
       const payload = {
         cotton: kitItems.cotton,
@@ -130,32 +135,21 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
         vehicleId: _vehicleId,
       };
 
-      let response;
+      let result: { success?: boolean; data?: { id?: number } };
       if (firstAidKitId) {
         // PUT request - update existing record
-        response = await fetch(`${baseUrl}/firstaidkit/firstaidkit/${firstAidKitId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+        result = await httpPut<{ success?: boolean; data?: { id?: number } }>(
+          `/firstaidkit/firstaidkit/${firstAidKitId}`,
+          payload,
+        );
       } else {
         // POST request - create new record
-        response = await fetch(`${baseUrl}/firstaidkit/firstaidkit`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+        result = await httpPost<{ success?: boolean; data?: { id?: number } }>(
+          "/firstaidkit/firstaidkit",
+          payload,
+        );
       }
 
-      if (!response.ok) {
-        throw new Error("Failed to save first aid kit data");
-      }
-
-      const result = await response.json();
       if (result.success && result.data && result.data.id) {
         setFirstAidKitId(result.data.id);
       }
