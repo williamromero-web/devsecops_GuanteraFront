@@ -55,10 +55,14 @@ function buildHeaders(
     options?.getHeaders?.() ?? runtimeConfig.getAuthHeaders?.() ?? {};
 
   for (const [key, value] of Object.entries(authHeaders)) {
+    // No agregar Content-Type desde authHeaders si estamos enviando FormData
+    if (key.toLowerCase() === "content-type" && !includeJsonContentType) {
+      continue;
+    }
     result.set(key, value);
   }
 
-  // Asegurar que no haya Content-Type cuando enviamos FormData
+  // Asegurar limpieza final: eliminar Content-Type cuando enviamos FormData
   if (!includeJsonContentType) {
     result.delete("Content-Type");
   }
