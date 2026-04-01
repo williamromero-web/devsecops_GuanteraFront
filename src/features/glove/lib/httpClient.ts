@@ -58,6 +58,11 @@ function buildHeaders(
     result.set(key, value);
   }
 
+  // Asegurar que no haya Content-Type cuando enviamos FormData
+  if (!includeJsonContentType) {
+    result.delete("Content-Type");
+  }
+
   return result;
 }
 
