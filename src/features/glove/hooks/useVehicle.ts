@@ -31,7 +31,7 @@ export function useVehicle(plate?: string | null): UseVehicleResult {
         setVehicle(v);
         setLoading(false);
       } catch (e) {
-        setError(e instanceof Error ? e : new Error("Unknown error"));
+        setError(e instanceof Error ? e : new Error("Error desconocido"));
         setLoading(false);
       }
     }, 0);

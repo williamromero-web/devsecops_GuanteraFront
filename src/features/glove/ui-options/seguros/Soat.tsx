@@ -90,7 +90,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
   const getStatusInfo = () => {
     return {
       title: "SOAT",
-      message: "Below is the policy information:",
+      message: "A continuación se muestra la información de la póliza:",
       chip: null,
     };
   };
@@ -174,7 +174,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
               color: theme.palette.text.primary,
             }}
           >
-            SOAT Information
+            Información del SOAT
           </Typography>
           {infoExpanded ? (
             <ExpandLessIcon
@@ -232,7 +232,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Start Date"
+                label="Fecha de inicio"
                 value={startDate}
                 variant="outlined"
                 size="small"
@@ -248,7 +248,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
-                label="Expiration Date"
+                label="Fecha de vencimiento"
                 value={expiredDate}
                 variant="outlined"
                 size="small"
@@ -291,7 +291,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
               color: theme.palette.text.primary,
             }}
           >
-            Attach SOAT
+            Adjuntar SOAT
           </Typography>
           {documentsExpanded ? (
             <ExpandLessIcon
@@ -316,7 +316,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
               documentNodes.map((node) => (
                 <DocumentUploadCard
                   key={node.nodeId}
-                  instruction={`Attach the SOAT document for the vehicle (License plate: ${plate}).`}
+                  instruction={`Adjunta el documento SOAT del vehículo (Placa: ${plate}).`}
                   hasFile
                   fileName={node.name}
                   vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
@@ -325,7 +325,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
                   nodeId={node.nodeId}
                   onDelete={handleAfterChange}
                   onSave={async (file, newCollectionId) => {
-                    setMessage(`${file.name} saved successfully.`);
+                    setMessage(`${file.name} se guardó correctamente.`);
                     const idToUse = newCollectionId ?? collectionId ?? null;
                     if (idToUse) await loadNodes(idToUse);
                     else await refetch();
@@ -334,14 +334,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
               ))
             ) : (
               <DocumentUploadCard
-                instruction={`Attach the SOAT document for the vehicle (License plate: ${plate}).`}
+                instruction={`Adjunta el documento SOAT del vehículo (Placa: ${plate}).`}
                 hasFile={false}
-                fileName="No file"
+                fileName="Sin archivo"
                 vehicleId={vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined}
                 documentTypeId="3"
                 collectionId={collectionId ?? undefined}
                 onSave={async (file, newCollectionId) => {
-                  setMessage(`${file.name} saved successfully.`);
+                  setMessage(`${file.name} se guardó correctamente.`);
                   const idToUse = newCollectionId ?? collectionId ?? null;
                   if (idToUse) await loadNodes(idToUse);
                   else await refetch();

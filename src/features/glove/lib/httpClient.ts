@@ -83,7 +83,7 @@ function getErrorMessage(response: Response, json: unknown): string {
     }
   }
 
-  return `HTTP ${response.status}: ${response.statusText}`;
+  return `Error HTTP ${response.status}: ${response.statusText}`;
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
