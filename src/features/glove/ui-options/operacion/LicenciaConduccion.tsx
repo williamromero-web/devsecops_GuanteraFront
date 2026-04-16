@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -23,12 +24,16 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
 import { useState, useEffect } from "react";
 import { useGuanteraConfig } from "../../providers/GuanteraProvider";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules";
 import { DateField } from "../../../../shared/ui/atoms";
 import { httpDelete, httpGet, httpPut, httpPutForm } from "../../lib/httpClient";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { computeExpiryStatus } from "../../lib/expiryStatus";
 
 const TipoCategoria = {
   A1: "A1",
@@ -570,7 +575,17 @@ export function LicenciaConduccion({
         </Typography>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {categorias.map((cat, index) => (
+          {categorias.map((cat, index) => {
+            const catStatus = computeExpiryStatus(cat.expiredDate);
+            const catChip = catStatus === "OK"
+              ? { label: "VIGENTE", icon: CheckCircleIcon, color: "success" as const }
+              : catStatus === "PRÓXIMO A VENCER"
+                ? { label: "PRÓXIMO A VENCER", icon: WarningIcon, color: "warning" as const }
+                : catStatus === "VENCIDO"
+                  ? { label: "VENCIDO", icon: ErrorIcon, color: "error" as const }
+                  : null;
+
+            return (
             <Paper
               key={cat.id}
               variant="outlined"
@@ -584,15 +599,26 @@ export function LicenciaConduccion({
                   mb: 2,
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: "0.875rem",
-                    fontWeight: 700,
-                    color: theme.palette.text.primary,
-                  }}
-                >
-                  Categoría {index + 1}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "0.875rem",
+                      fontWeight: 700,
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    Categoría {index + 1}
+                  </Typography>
+                  {catChip && (
+                    <Chip
+                      icon={<catChip.icon sx={{ fontSize: "1rem !important" }} />}
+                      label={catChip.label}
+                      color={catChip.color}
+                      size="small"
+                      sx={{ fontWeight: 600, fontSize: "0.75rem", height: 24, borderRadius: "12px" }}
+                    />
+                  )}
+                </Box>
                 {!disabledFields && (
                   <IconButton
                     size="small"
@@ -647,7 +673,8 @@ export function LicenciaConduccion({
                 </Grid>
               </Grid>
             </Paper>
-          ))}
+            );
+          })}
         </Box>
 
         <Divider sx={{ mt: 2, mb: 2 }} />

@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   // Button,
+  Chip,
   Grid,
   Paper,
   TextField,
@@ -11,6 +12,9 @@ import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InfoIcon from "@mui/icons-material/Info";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
 // import EditIcon from "@mui/icons-material/Edit";
 // import SaveIcon from "@mui/icons-material/Save";
 // import CancelIcon from "@mui/icons-material/Cancel";
@@ -19,6 +23,7 @@ import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUplo
 import { formatToDD_MM_YYYY } from "../../services/documentUpload";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
 import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
+import { computeExpiryStatus } from "../../lib/expiryStatus";
 
 export interface SoatProps {
   plate: string;
@@ -88,7 +93,30 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
     }
   }
 
+  const statusType = computeExpiryStatus(vehicleDocument?.expiredDate);
+
   const getStatusInfo = () => {
+    if (statusType === "OK") {
+      return {
+        title: "SOAT VIGENTE",
+        message: "El SOAT correspondiente al vehículo seleccionado se encuentra VIGENTE a la fecha. A continuación se detalla la información:",
+        chip: { label: "VIGENTE", icon: CheckCircleIcon, color: "success" },
+      };
+    }
+    if (statusType === "PRÓXIMO A VENCER") {
+      return {
+        title: "SOAT PRÓXIMO A VENCER",
+        message: "El SOAT correspondiente al vehículo seleccionado está PRÓXIMO A VENCER. Se recomienda realizar la renovación antes de la fecha de vencimiento.",
+        chip: { label: "PRÓXIMO A VENCER", icon: WarningIcon, color: "warning" },
+      };
+    }
+    if (statusType === "VENCIDO") {
+      return {
+        title: "SOAT VENCIDO",
+        message: "El SOAT correspondiente al vehículo seleccionado está VENCIDO. Es necesario realizar la renovación de manera inmediata.",
+        chip: { label: "VENCIDO", icon: ErrorIcon, color: "error" },
+      };
+    }
     return {
       title: "SOAT",
       message: "A continuación se muestra la información de la póliza:",
@@ -97,6 +125,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
   };
 
   const statusInfo = getStatusInfo();
+  const StatusIcon = statusInfo.chip?.icon;
 
   // const handleCancel = () => {
   //   setIsEditing(false);
@@ -171,7 +200,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             sx={{
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
+              color:
+                statusType === "OK"
+                  ? (theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark)
+                  : statusType === "PRÓXIMO A VENCER"
+                    ? theme.palette.warning.main
+                    : statusType === "VENCIDO"
+                      ? theme.palette.error.main
+                      : theme.palette.text.secondary,
               mb: 1,
             }}
           >
@@ -186,6 +222,19 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
           >
             {statusInfo.message}
           </Typography>
+          {statusInfo.chip && StatusIcon && (
+            <Chip
+              icon={<StatusIcon />}
+              label={statusInfo.chip.label}
+              color={statusInfo.chip.color as "success" | "warning" | "error"}
+              sx={{
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                height: 32,
+                borderRadius: "16px",
+              }}
+            />
+          )}
         </Box>
 
         <Box

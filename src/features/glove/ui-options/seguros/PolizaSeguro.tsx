@@ -250,7 +250,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             sx={{
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
+              color:
+                statusType === "OK"
+                  ? (theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark)
+                  : statusType === "PRÓXIMO A VENCER"
+                    ? theme.palette.warning.main
+                    : statusType === "VENCIDO"
+                      ? theme.palette.error.main
+                      : theme.palette.text.secondary,
               mb: 1,
             }}
           >
