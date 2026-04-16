@@ -70,8 +70,8 @@ export function getOptionCardConfig(theme: Theme, status: NormalizedStatus) {
   // Default / "ok"
   return {
     dotColor: theme.palette.success.main,
-    border: borderColor,
-    bg: theme.palette.background.paper,
+    border: theme.palette.success.main,
+    bg: `${theme.palette.success.main}1A`,
     iconColor: theme.palette.success.main,
     iconBg: surfaceAlt,
   } as const;
