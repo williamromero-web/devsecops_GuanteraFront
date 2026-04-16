@@ -140,4 +140,5 @@ vite.config.ts.timestamp-*
 
 # Other files
 .DS_Store
+**/.DS_Store
 Thumbs.db

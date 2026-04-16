@@ -1,83 +1,80 @@
-import type { SxProps, Theme } from "@mui/material/styles";
-import { Box, Link, Paper, Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import InfoIcon from "@mui/icons-material/Info";
+import type { MouseEvent } from 'react';
+import type { SxProps, Theme } from '@mui/material/styles';
+import { Box, Paper, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+
+const TERMS_URL = import.meta.env.VITE_TERMS_URL as string;
 
 export interface DisclaimerBannerProps {
-  // onTermsClick?: () => void;
-  sx?: SxProps<Theme>;
+	onTermsClick?: () => void;
+	sx?: SxProps<Theme>;
 }
 
-// export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBannerProps>) {
-export function DisclaimerBanner({ sx }: Readonly<DisclaimerBannerProps>) {
-  const theme = useTheme();
+export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBannerProps>) {
+	const theme = useTheme();
 
-  const borderColor =
-    (theme.palette as { border?: { main?: string } })?.border?.main ??
-    theme.palette.divider ??
-    "#D0D0D0";
+	const borderColor =
+		(theme.palette as { border?: { main?: string } })?.border?.main ??
+		theme.palette.divider ??
+		'#D0D0D0';
 
-  return (
-    <Paper
-      sx={{
-        p: 2,
-        bgcolor: theme.palette.background.paper,
-        borderRadius: 2,
-        border: `1px solid ${borderColor}`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 1.5,
-        ...sx,
-      }}
-    >
-      <Box
-        sx={{
-          width: "4px",
-          height: "100%",
-          bgcolor: theme.palette.divider,
-          opacity: 0.8,
-          flexShrink: 0,
-          borderRadius: "10px",
-        }}
-      />
-      <Typography sx={{ fontSize: "0.85rem", color: theme.palette.text.secondary, lineHeight: 1.6, flex: 1 }}>
-        Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia, consulte directamente
-        con quien los expide, las entidades oficiales de tránsito o, con su aseguradora. Esta plataforma, únicamente
-        las visibiliza,{" "}
-        <Box component="span" sx={{ fontWeight: 600 }}>
-          NO
-        </Box>{" "}
-        es responsable de lo que la fuente de información emita.{" "}
-        {/* <Box
-          component="span"
-          onClick={onTermsClick}
-          sx={{
-            textDecoration: "underline",
-            cursor: onTermsClick ? "pointer" : "default",
-            color: theme.palette.text.secondary,
-            "&:hover": onTermsClick ? { color: theme.palette.primary.light } : undefined,
-          }}
-        >
-          Términos y condiciones.
-        </Box> */}
-
-        <Box>
-          <InfoIcon sx={{ fontSize: "1rem" }} />
-            <Link
-              href="https://www.simonmovilidad.com/files/Condicionado_Asistencias_Simon_Movilidad.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ fontWeight: 600 }}
-            >
-              Términos y condiciones.
-            </Link>
-        </Box>
-        
-
-        
-      </Typography>
-    </Paper>
-  );
+	return (
+		<Paper
+			sx={{
+				p: 2,
+				bgcolor: theme.palette.background.paper,
+				borderRadius: 2,
+				border: `1px solid ${borderColor}`,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: 1.5,
+				...sx,
+			}}
+		>
+			<Box
+				sx={{
+					width: '4px',
+					height: '100%',
+					bgcolor: theme.palette.divider,
+					opacity: 0.8,
+					flexShrink: 0,
+					borderRadius: '10px',
+				}}
+			/>
+			<Typography
+				sx={{
+					fontSize: '0.85rem',
+					color: theme.palette.text.secondary,
+					lineHeight: 1.6,
+					flex: 1,
+				}}
+			>
+				Los datos son de carácter informativo y no oficial. Si encuentra alguna
+				inconsistencia, consulte directamente con quien los expide, las entidades oficiales
+				de tránsito o, con su aseguradora. Esta plataforma, únicamente las visibiliza,{' '}
+				<Box component='span' sx={{ fontWeight: 600 }}>
+					NO
+				</Box>{' '}
+				es responsable de lo que la fuente de información emita.{' '}
+				<Box
+					component='span'
+					onClick={(e: MouseEvent) => {
+						e.preventDefault();
+						e.stopPropagation();
+						window.open(TERMS_URL, '_blank', 'noopener,noreferrer');
+						onTermsClick?.();
+					}}
+					sx={{
+						textDecoration: 'underline',
+						cursor: 'pointer',
+						color: theme.palette.text.secondary,
+						'&:hover': { color: theme.palette.primary.light },
+					}}
+				>
+					Términos y condiciones.
+				</Box>
+			</Typography>
+		</Paper>
+	);
 }
-
