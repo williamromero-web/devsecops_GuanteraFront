@@ -14,6 +14,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import InfoIcon from "@mui/icons-material/Info";
 import { useState, useEffect } from "react";
 import { httpGet, httpPost, httpPut } from "../../lib/httpClient";
 import { DateField } from "../../../../shared/ui/atoms";
@@ -87,6 +88,10 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -247,6 +252,35 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial; El usuario debe verificar 
+          la actualización de la información con la normatividad vigente del 
+          Ministerio de Transporte y el Código Nacional de Tránsito
+        </Typography>
+      </Paper>
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}

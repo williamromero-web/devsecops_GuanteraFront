@@ -349,32 +349,32 @@ export function PicoYPlaca({ plate }: Readonly<PicoYPlacaProps>) {
       <Paper
         sx={{
           p: 2,
-          bgcolor: surfaceAlt,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
           borderRadius: 2,
           border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-          <InfoIcon
-            sx={{
-              color: theme.palette.text.secondary,
-              fontSize: "1.25rem",
-              mt: 0.5,
-            }}
-          />
-          <Typography
-            sx={{
-              fontSize: "0.875rem",
-              color: theme.palette.text.secondary,
-            }}
-          >
-            La información es informativa y no oficial, aplicable solo a Bogotá,
-            Cali, Villavicencio, Barranquilla y Medellín. El usuario debe
-            verificar la actualización de la información, consultando siempre
-            los canales oficiales de las entidades pertinentes (alcaldía,
-            gobernación o ente regulador correspondiente).
-          </Typography>
-        </Box>
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          La información es informativa y no oficial, aplicable solo a Bogotá, Cali, Villavicencio, Barranquilla y Medellín. 
+          El usuario debe verificar la actualización de la información, 
+          consultando siempre los canales oficiales de las entidades pertinentes 
+          (alcaldía, gobernación o ente regulador correspondiente).
+        </Typography>
       </Paper>
 
       <FormControl fullWidth size="small">

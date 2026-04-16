@@ -18,6 +18,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
 import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 import { DateField } from "../../../../shared/ui/atoms";
@@ -196,6 +197,35 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia,
+          consulte directamente con quien los expide, las entidades oficiales de tránsito o, con su aseguradora. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita.
+        </Typography>
+      </Paper>
       {policyError || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {policyError || error}

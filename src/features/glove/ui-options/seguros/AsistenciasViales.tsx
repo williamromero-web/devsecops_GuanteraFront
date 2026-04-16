@@ -100,10 +100,10 @@ export function AsistenciasViales({
             color: theme.palette.text.secondary,
           }}
         >
-          Los servicios de asistencias son prestados por Asistencias y Servicios
-          Automatizados YA S.A.S (Asisya), para más detalles consulte términos y
-          condiciones. Esta plataforma únicamente las visibiliza y no es
-          responsable por la prestación directa de estos servicios.
+          Los servicios de asistencias son prestados por Asistencias y Servicios Automatizados YA S.A.S (Asisya), 
+          para más detalles consulte términos y condiciones. 
+          Quantum Data no se hace responsable por la prestación de estos servicios. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita.
         </Typography>
       </Paper>
 

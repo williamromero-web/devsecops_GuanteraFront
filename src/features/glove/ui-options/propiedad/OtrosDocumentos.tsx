@@ -22,6 +22,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DescriptionIcon from "@mui/icons-material/Description";
+import InfoIcon from "@mui/icons-material/Info";
 import { useState, useEffect } from "react";
 import { formatToDD_MM_YYYY, uploadOtrosDocumentos } from "../../services";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
@@ -54,6 +55,11 @@ export function OtrosDocumentos({
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
+
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
 
   const { documents: otherDocuments, error: loadingError, refetch } = useOtherDocuments(_plate);
 
@@ -382,6 +388,36 @@ export function OtrosDocumentos({
         </DialogActions>
       </Dialog>
       
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          La digitalización de estos documentos es únicamente para fines de registro y no reemplaza los documentos originales, 
+          los cuales deberán presentarse en caso de ser requeridos por las autoridades competentes. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita
+        </Typography>
+      </Paper>
+
       {loadingError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {loadingError}

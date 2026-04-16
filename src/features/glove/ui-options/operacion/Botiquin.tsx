@@ -13,6 +13,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import InfoIcon from "@mui/icons-material/Info";
 import { useState, useEffect } from "react";
 import { httpGet, httpPost, httpPut } from "../../lib/httpClient";
 
@@ -167,6 +168,37 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial; El usuario debe verificar 
+          la actualización de la información con la normatividad vigente del 
+          Ministerio de Transporte y el Código Nacional de Tránsito
+        </Typography>
+      </Paper>
+
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}

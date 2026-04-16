@@ -10,6 +10,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InfoIcon from "@mui/icons-material/Info";
 // import EditIcon from "@mui/icons-material/Edit";
 // import SaveIcon from "@mui/icons-material/Save";
 // import CancelIcon from "@mui/icons-material/Cancel";
@@ -30,10 +31,10 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
-  // const surfaceAlt =
-  //   (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
-  //   theme.palette.background.paper ??
-  //   theme.palette.background.default;
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
   // const [isEditing, setIsEditing] = useState(false);
@@ -115,6 +116,36 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia,
+          consulte directamente con quien los expide, las entidades oficiales de tránsito o, con su aseguradora. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita.
+        </Typography>
+      </Paper>
+
       {policyError || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {policyError || error}

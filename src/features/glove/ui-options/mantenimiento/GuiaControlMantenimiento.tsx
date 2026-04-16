@@ -3,7 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 // import EditIcon from "@mui/icons-material/Edit";
-// import SaveIcon from "@mui/icons-material/Save";
+import InfoIcon from "@mui/icons-material/Info";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
@@ -87,6 +87,36 @@ export function GuiaControlMantenimiento({
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          La digitalización de estos documentos es únicamente para fines de registro y no reemplaza los documentos originales. 
+          Es responsabilidad del Usuario consultar la documentación física oficial para validar cualquier 
+          información relevante sobre el mantenimiento del vehículo.
+        </Typography>
+      </Paper>
+
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
