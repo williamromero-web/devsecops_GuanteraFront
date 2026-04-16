@@ -249,14 +249,6 @@ export function AsistenciasViales({ plate: _plate }: Readonly<AsistenciasVialesP
 					}}
 				>
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-						<Box
-							sx={{
-								width: 32,
-								height: 52,
-								borderRadius: 1.5,
-								border: `2px solid ${borderColor}`,
-							}}
-						/>
 						<Typography
 							sx={{
 								fontSize: { xs: '0.95rem', md: '1.1rem' },
