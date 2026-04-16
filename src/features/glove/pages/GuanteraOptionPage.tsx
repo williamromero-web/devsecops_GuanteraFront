@@ -36,7 +36,7 @@ export function GuanteraOptionPage() {
   const breadcrumbItems = [
     { label: "Guantera", to: "/glove" },
     { label: plate ?? "—", to: "/glove" },
-    { label: moduleLabel, to: `/glove/${plate}/${moduleKey}` },
+    { label: moduleLabel, to: `/glove/${plate}/${vehicleId}/${moduleKey}` },
     { label: optionLabel },
   ];
 
