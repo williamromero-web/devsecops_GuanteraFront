@@ -45,6 +45,13 @@ const KIT_ITEMS = [
   },
 ];
 
+interface FireExtinguisherApiData {
+  id?: number;
+  has_extinguisher?: boolean;
+  refill_date?: string; // formato DD-MM-YYYY
+  road_kit_id?: number;
+}
+
 interface RoadKitApiData {
   id?: number;
   jack?: boolean;
@@ -55,6 +62,7 @@ interface RoadKitApiData {
   wheel_chocks?: boolean;
   toolbox?: boolean;
   has_extinguisher?: boolean;
+  fire_extinguisher?: FireExtinguisherApiData;
 }
 
 interface RoadKitPayload {
@@ -67,6 +75,7 @@ interface RoadKitPayload {
   toolbox: boolean;
   vehicleId: number;
   FireExtinguisher?: {
+    id?: number;
     hasExtinguisher: boolean;
     refillDate: string;
   };
@@ -84,6 +93,7 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [roadKitId, setRoadKitId] = useState<number | null>(null);
+  const [extinguisherId, setExtinguisherId] = useState<number | null>(null);
 
   const [kitItems, setKitItems] = useState<Record<string, boolean>>({
     gato: false,
@@ -131,6 +141,21 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
           setCurrentKitItems(mappedKitItems);
           setExtintorPresente(roadKitData.has_extinguisher ?? false);
           setCurrentExtintorPresente(roadKitData.has_extinguisher ?? false);
+
+          // Extraer fecha de recarga del extintor si existe
+          // Backend manda DD-MM-YYYY, <input type="date"> necesita YYYY-MM-DD
+          const rawDate = roadKitData.fire_extinguisher?.refill_date;
+          if (rawDate) {
+            const [day, month, year] = rawDate.split("-");
+            const isoDate = `${year}-${month}-${day}`;
+            setFechaUltimaRecarga(isoDate);
+            setCurrentFechaUltimaRecarga(isoDate);
+          }
+
+          // Guardar el ID del extintor para enviarlo en el PUT
+          if (roadKitData.fire_extinguisher?.id) {
+            setExtinguisherId(roadKitData.fire_extinguisher.id);
+          }
         }
       } catch (err) {
         console.error("Error fetching road kit data:", err);
@@ -182,6 +207,7 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
         const isoDate = dateObj.toISOString().replace('Z', '-05:00');
         
         payload.FireExtinguisher = {
+          ...(extinguisherId ? { id: extinguisherId } : {}),
           hasExtinguisher: true,
           refillDate: isoDate,
         };
