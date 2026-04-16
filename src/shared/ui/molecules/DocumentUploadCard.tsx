@@ -11,6 +11,7 @@ import {
   DialogTitle,
   IconButton,
   Paper,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -259,13 +260,31 @@ export function DocumentUploadCard({
           >
             {instruction}
           </Typography>
-          <IconButton
-            size="small"
-            sx={{ color: theme.palette.text.tertiary }}
-            aria-label="Ayuda"
+          <Tooltip
+            title={
+              <Box>
+                <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, mb: 0.5 }}>
+                  Restricciones de archivo
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem" }}>
+                  • Formatos permitidos: PDF, PNG o JPEG
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem" }}>
+                  • Tamaño máximo: 5 MB por archivo
+                </Typography>
+              </Box>
+            }
+            arrow
+            placement="top"
           >
-            <HelpOutlineIcon fontSize="small" />
-          </IconButton>
+            <IconButton
+              size="small"
+              sx={{ color: theme.palette.text.tertiary }}
+              aria-label="Ayuda"
+            >
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <Box
