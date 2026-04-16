@@ -215,7 +215,7 @@ export function GuiaControlMantenimiento({
           onClick={isEditing ? handleSave : () => setIsEditing(true)}
           sx={{
             bgcolor: theme.palette.primary.light,
-            color: "#000",
+            color: theme.palette.text.primaryButton,
             fontWeight: 600,
             textTransform: "none",
             px: 3,

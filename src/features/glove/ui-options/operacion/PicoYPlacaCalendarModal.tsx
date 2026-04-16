@@ -29,7 +29,7 @@ export function PicoYPlacaCalendarModal({
   const theme = useTheme();
   const { data, isLoading, error } = usePypCalendar(open ? plate : "", municipalityCode);
 
-  const titleColor = (theme.palette as any)?.brand?.main ?? "#00E0B1";
+  const titleColor = theme.palette.primary.light;
 
   // Dummy current month details
   const today = new Date();
@@ -126,8 +126,8 @@ export function PicoYPlacaCalendarModal({
                   textColor = "#fff";
                   fontWeight = "bold";
                 } else if (isAllowed) {
-                  bgColor = "#00E0B1";
-                  textColor = "#fff";
+                  bgColor = theme.palette.primary.light;
+                  textColor = theme.palette.primary.contrastText;
                   fontWeight = "bold";
                 }
                 

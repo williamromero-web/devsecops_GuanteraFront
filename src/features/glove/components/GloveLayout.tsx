@@ -24,7 +24,7 @@ export function GloveLayout({
     paperBg;
   const headerBg = isDark ? alwaysDarkMain : paperBg;
   const contentBg = isDark ? alwaysDarkMain : paperBg;
-  const primaryLight = theme.palette?.primary?.light ?? "#1976d2";
+  const primaryLight = theme.palette?.primary?.light ?? theme.palette.primary.main;
   const textPrimary = theme.palette?.text?.primary ?? "#000000";
 
   return (

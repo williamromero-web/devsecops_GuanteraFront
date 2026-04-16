@@ -159,7 +159,7 @@ export function Testigos({ plate }: Readonly<TestigosProps>) {
       {categories.length > 0 ? (
         <Grid container spacing={2}>
           {categories.map((category) => {
-            const bgColor = category.color || "#e5e7eb";
+            const bgColor = category.color || theme.palette.surface.alt;
             const isSelected = selectedCategory === category.categoryId;
             const imgSrc = category.urlImage || iconMotor;
 

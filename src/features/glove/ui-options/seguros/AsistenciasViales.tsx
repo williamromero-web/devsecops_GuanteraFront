@@ -1,6 +1,7 @@
 import { Box, Link, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import InfoIcon from "@mui/icons-material/Info";
+import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 
 export interface AsistenciasVialesProps {
   plate: string;
@@ -262,14 +263,28 @@ export function AsistenciasViales({
             </Typography>
           </Box>
 
-          <Typography
+          <Box
             sx={{
-              fontSize: { xs: "1rem", md: "1.25rem" },
-              fontWeight: 800,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
           >
-            601 742 9022
-          </Typography>
+            <LocalPhoneIcon
+              sx={{
+                fontSize: "1.5rem",
+                color: theme.palette.primary.light,
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: { xs: "1rem", md: "1.25rem" },
+                fontWeight: 800,
+              }}
+            >
+              601 742 9022
+            </Typography>
+          </Box>
         </Paper>
       </Paper>
     </Box>

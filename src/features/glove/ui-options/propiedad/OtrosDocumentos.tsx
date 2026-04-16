@@ -778,7 +778,7 @@ export function OtrosDocumentos({
           startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
           sx={{
             bgcolor: theme.palette.primary.light,
-            color: "#000",
+            color: theme.palette.text.primaryButton,
             fontWeight: 600,
             textTransform: "none",
             px: 3,
