@@ -20,6 +20,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
 import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { DateField } from "../../../../shared/ui/atoms";
 import { useInsurancePolicy } from "../../hooks/useInsurancePolicy";
 import { useInsurers } from "../../hooks/useInsurers";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
@@ -340,22 +341,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
               </TextField>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <DateField
                 fullWidth
                 label="Fecha de vigencia"
-                type="date"
                 value={fechaVigencia}
                 onChange={(e) => setFechaVigencia(e.target.value)}
                 disabled={!isEditing}
                 variant="outlined"
                 size="small"
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>

@@ -6,7 +6,6 @@ import {
   Grid,
   Paper,
   Switch,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -17,6 +16,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useState, useEffect } from "react";
 import { httpGet, httpPost, httpPut } from "../../lib/httpClient";
+import { DateField } from "../../../../shared/ui/atoms";
 
 export interface KitCarreteraProps {
   plate: string;
@@ -346,10 +346,9 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
               {extintorPresente && (
                 <Grid container spacing={2} sx={{ mt: 1 }}>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
+                    <DateField
                       fullWidth
                       label="Fecha última recarga *"
-                      type="date"
                       value={fechaUltimaRecarga}
                       onChange={(e) => setFechaUltimaRecarga(e.target.value)}
                       disabled={!isEditing}
@@ -358,13 +357,6 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
                       required
                       error={isEditing && !fechaUltimaRecarga}
                       helperText={isEditing && !fechaUltimaRecarga ? "La fecha es obligatoria" : ""}
-                      InputLabelProps={{ shrink: true }}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: theme.palette.background.paper,
-                          color: theme.palette.text.primary,
-                        },
-                      }}
                     />
                   </Grid>
                 </Grid>

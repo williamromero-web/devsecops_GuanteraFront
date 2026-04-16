@@ -26,6 +26,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useState, useEffect } from "react";
 import { useGuanteraConfig } from "../../providers/GuanteraProvider";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules";
+import { DateField } from "../../../../shared/ui/atoms";
 import { httpDelete, httpGet, httpPut, httpPutForm } from "../../lib/httpClient";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
 
@@ -610,10 +611,9 @@ export function LicenciaConduccion({
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
+                  <DateField
                     fullWidth
                     label="Fecha de vigencia"
-                    type="date"
                     value={cat.expiredDate}
                     onChange={(e) =>
                       handleCategoriaChange(
@@ -624,7 +624,6 @@ export function LicenciaConduccion({
                     }
                     size="small"
                     disabled={disabledFields}
-                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
               </Grid>

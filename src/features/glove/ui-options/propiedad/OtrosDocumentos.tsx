@@ -15,6 +15,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { DateField } from "../../../../shared/ui/atoms";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -484,43 +485,27 @@ export function OtrosDocumentos({
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <DateField
                 fullWidth
                 label="Fecha expedición"
-                type="date"
                 value={doc.fechaExpedicion}
                 variant="outlined"
                 size="small"
                 required
                 disabled={!isEditing}
-                // error={submitted}
-                // error={submitted && !doc.fechaExpedicion}
-                InputLabelProps={{
-                  shrink: true,
-                }}
                 onChange={(e) =>
                   handleInputChange(docIndex, "fechaExpedicion", e.target.value)
                 }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <DateField
                 fullWidth
                 label="Fecha vencimiento"
-                type="date"
                 value={doc.fechaVencimiento}
                 variant="outlined"
                 size="small"
                 disabled={!isEditing}
-                InputLabelProps={{
-                  shrink: true,
-                }}
                 onChange={(e) =>
                   handleInputChange(
                     docIndex,
@@ -528,12 +513,6 @@ export function OtrosDocumentos({
                     e.target.value,
                   )
                 }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
