@@ -220,7 +220,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             sx={{
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: theme.palette.primary.light,
+              color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
               mb: 1,
             }}
           >
@@ -273,14 +273,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -407,15 +407,16 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                   }
                   onClick={isEditing ? handleSave : () => setIsEditing(true)}
                   sx={{
-                    bgcolor: theme.palette.primary.light,
-                    color: theme.palette.text.primaryButton,
+                    bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                    color: "#FFFFFF",
                     fontWeight: 600,
                     textTransform: "none",
                     px: 3,
                     py: 1.5,
                     borderRadius: 2,
                     "&:hover": {
-                      bgcolor: theme.palette.primary.main,
+                      bgcolor: theme.palette.primary.light,
+                      color: "#181818",
                     },
                     "&:disabled": {
                       bgcolor: theme.palette.action.disabledBackground,
@@ -470,14 +471,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}

@@ -451,6 +451,12 @@ export function LicenciaConduccion({
                   startIcon={<CancelIcon />}
                   onClick={handleCancel}
                   disabled={saving}
+                  sx={{
+                    borderColor: theme.palette.text.secondary,
+                    color: theme.palette.text.secondary,
+                    textTransform: "none",
+                    "&:hover": { borderColor: theme.palette.text.primary, color: theme.palette.text.primary },
+                  }}
                 >
                   Cancelar
                 </Button>
@@ -460,6 +466,12 @@ export function LicenciaConduccion({
                   startIcon={<SaveIcon />}
                   onClick={handleSave}
                   disabled={saving}
+                  sx={{
+                    bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                    color: "#FFFFFF",
+                    "&:hover": { bgcolor: theme.palette.primary.light, color: "#181818" },
+                    textTransform: "none",
+                  }}
                 >
                   Guardar
                 </Button>
@@ -470,6 +482,12 @@ export function LicenciaConduccion({
                 size="small"
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditing(true)}
+                sx={{
+                  borderColor: theme.palette.text.secondary,
+                  color: theme.palette.text.secondary,
+                  textTransform: "none",
+                  "&:hover": { borderColor: theme.palette.text.primary, color: theme.palette.text.primary },
+                }}
               >
                 Editar
               </Button>
@@ -580,6 +598,7 @@ export function LicenciaConduccion({
                     size="small"
                     onClick={() => handleRemoveCategoria(cat.id)}
                     disabled={saving}
+                    sx={{ color: theme.palette.text.secondary }}
                   >
                     <DeleteOutlineIcon fontSize="small" />
                   </IconButton>
@@ -700,7 +719,13 @@ export function LicenciaConduccion({
             variant="outlined"
             onClick={handleAddCategoria}
             disabled={saving}
-            sx={{ mt: 2 }}
+            sx={{
+              mt: 2,
+              textTransform: "none",
+              borderColor: theme.palette.text.secondary,
+              color: theme.palette.text.secondary,
+              "&:hover": { borderColor: theme.palette.text.primary, color: theme.palette.text.primary },
+            }}
           >
             Agregar otra categoría
           </Button>
@@ -717,7 +742,7 @@ export function LicenciaConduccion({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} variant="outlined">
+          <Button onClick={handleCancelDelete} variant="outlined" sx={{ textTransform: "none", borderColor: theme.palette.text.secondary, color: theme.palette.text.secondary }}>
             Cancelar
           </Button>
           <Button onClick={handleConfirmDelete} variant="contained" color="error">

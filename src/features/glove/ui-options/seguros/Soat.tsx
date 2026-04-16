@@ -140,7 +140,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             sx={{
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: theme.palette.primary.light,
+              color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
               mb: 1,
             }}
           >
@@ -180,14 +180,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -297,14 +297,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}

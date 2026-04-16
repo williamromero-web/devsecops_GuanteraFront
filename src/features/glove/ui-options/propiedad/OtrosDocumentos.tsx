@@ -616,11 +616,12 @@ export function OtrosDocumentos({
                   sx={{
                     mb: 2,
                     textTransform: "none",
-                    borderColor: theme.palette.primary.light,
-                    color: theme.palette.primary.light,
+                    borderColor: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
+                    color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
                     "&:hover": {
-                      borderColor: theme.palette.primary.main,
-                      bgcolor: `${theme.palette.primary.light}20`,
+                      borderColor: theme.palette.primary.light,
+                      color: theme.palette.primary.light,
+                      bgcolor: "transparent",
                     },
                   }}
                 >
@@ -777,15 +778,16 @@ export function OtrosDocumentos({
           variant="contained"
           startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
           sx={{
-            bgcolor: theme.palette.primary.light,
-            color: theme.palette.text.primaryButton,
+            bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+            color: "#FFFFFF",
             fontWeight: 600,
             textTransform: "none",
             px: 3,
             py: 1.5,
             borderRadius: 2,
             "&:hover": {
-              bgcolor: theme.palette.primary.main,
+              bgcolor: theme.palette.primary.light,
+              color: "#181818",
             },
             "&:disabled": {
               bgcolor: theme.palette.action.disabledBackground,

@@ -209,14 +209,14 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -307,15 +307,16 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
                   }
                   onClick={isEditing ? handleSave : () => setIsEditing(true)}
                   sx={{
-                    bgcolor: theme.palette.primary.light,
-                    color: theme.palette.text.primaryButton,
+                    bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                    color: "#FFFFFF",
                     fontWeight: 600,
                     textTransform: "none",
                     px: 3,
                     py: 1.5,
                     borderRadius: 2,
                     "&:hover": {
-                      bgcolor: theme.palette.primary.main,
+                      bgcolor: theme.palette.primary.light,
+                      color: "#181818",
                     },
                     "&:disabled": {
                       bgcolor: theme.palette.action.disabledBackground,
@@ -366,14 +367,14 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
