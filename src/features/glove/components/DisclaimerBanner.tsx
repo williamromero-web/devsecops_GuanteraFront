@@ -1,13 +1,15 @@
 import type { SxProps, Theme } from "@mui/material/styles";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Link, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import InfoIcon from "@mui/icons-material/Info";
 
 export interface DisclaimerBannerProps {
-  onTermsClick?: () => void;
+  // onTermsClick?: () => void;
   sx?: SxProps<Theme>;
 }
 
-export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBannerProps>) {
+// export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBannerProps>) {
+export function DisclaimerBanner({ sx }: Readonly<DisclaimerBannerProps>) {
   const theme = useTheme();
 
   const borderColor =
@@ -47,7 +49,7 @@ export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBanner
           NO
         </Box>{" "}
         es responsable de lo que la fuente de información emita.{" "}
-        <Box
+        {/* <Box
           component="span"
           onClick={onTermsClick}
           sx={{
@@ -58,7 +60,22 @@ export function DisclaimerBanner({ onTermsClick, sx }: Readonly<DisclaimerBanner
           }}
         >
           Términos y condiciones.
+        </Box> */}
+
+        <Box>
+          <InfoIcon sx={{ fontSize: "1rem" }} />
+            <Link
+              href="https://www.simonmovilidad.com/files/Condicionado_Asistencias_Simon_Movilidad.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ fontWeight: 600 }}
+            >
+              Términos y condiciones.
+            </Link>
         </Box>
+        
+
+        
       </Typography>
     </Paper>
   );

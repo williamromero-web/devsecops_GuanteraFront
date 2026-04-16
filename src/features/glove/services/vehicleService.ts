@@ -32,14 +32,22 @@ export interface ModuleDetailResponse {
   items: ModuleDetailItem[];
 }
 
+export interface VehicleOwner {
+  ExternalID: string;
+  Phone: string;
+  Email: string;
+  FullName: string;
+}
+
 export async function fetchVehiclesModules(
   plates: string[],
+  owner: VehicleOwner,
   apiUrl?: string
 ): Promise<VehicleStatus[]> {
   try {
     const result = await httpPost<{ data?: ApiVehicleStatus[] }>(
       "/vehicle/modules",
-      plates,
+      { plates, owner },
       { baseUrl: apiUrl },
     );
     const data: ApiVehicleStatus[] = result.data || [];

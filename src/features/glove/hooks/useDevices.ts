@@ -31,7 +31,7 @@ export interface UseDevicesResult {
 }
 
 export function useDevices(params: UseDevicesParams): UseDevicesResult {
-  const { fetchDevices, devicesApiConfig } = useGuanteraConfig();
+  const { fetchDevices, devicesApiConfig, userId, userProfile } = useGuanteraConfig();
   const { page, pageSize, search } = params;
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -122,7 +122,14 @@ export function useDevices(params: UseDevicesParams): UseDevicesResult {
             .map(v => v.plate)
             .filter((plate): plate is string => !!plate); 
 
-          const modulesInfo = await fetchVehiclesModules(plates);
+          const owner = {
+            ExternalID: userId ?? "",
+            Phone: userProfile?.phoneNumber ?? "",
+            Email: userProfile?.email ?? "",
+            FullName: [userProfile?.firstName, userProfile?.lastName].filter(Boolean).join(" "),
+          };
+
+          const modulesInfo = await fetchVehiclesModules(plates, owner);
 
           if (requestId !== requestIdRef.current) return;
 

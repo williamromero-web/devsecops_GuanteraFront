@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -13,110 +14,28 @@ import {
 import { useTheme } from "@mui/material/styles";
 import InfoIcon from "@mui/icons-material/Info";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import iconMotor from "../../../../assets/witness/motor-gray.svg";
 import iconElectric from "../../../../assets/witness/gas-gray.svg";
-
-interface WitnessCategory {
-  Id: string;
-  Name: string;
-  Description: string;
-  Color?: string;
-  UrlImage?: string;
-}
-
-interface Witness {
-  Name: string;
-  Description: string;
-  RecommendedAction?: string;
-  UrlImage?: string;
-}
+import { useBrandWitnesses } from "../../hooks/useBrandWitnesses";
+import type { ApiWitness } from "../../services/brandWitnessService";
 
 export interface TestigosProps {
   plate: string;
 }
 
-export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
+export function Testigos({ plate }: Readonly<TestigosProps>) {
   const theme = useTheme();
-  const [categories] = useState<WitnessCategory[]>([
-    {
-      Id: "motor",
-      Name: "Motor",
-      Description: "Testigos relacionados con el funcionamiento del motor.",
-      Color: "#F97316",
-      UrlImage:
-        iconMotor,
-    },
-    {
-      Id: "seguridad",
-      Name: "Seguridad",
-      Description:
-        "Indicadores de seguridad activa y pasiva del vehículo (ABS, airbag, etc.).",
-      Color: "#0EA5E9",
-      UrlImage: iconMotor,
-    },
-    {
-      Id: "electricos",
-      Name: "Sistema eléctrico",
-      Description:
-        "Avisos asociados al sistema eléctrico y carga de batería.",
-      Color: "#22C55E",
-      UrlImage: iconElectric,
-    },
-  ]);
+  const { categories, vehicleBrand, isLoading, error } = useBrandWitnesses(plate);
 
-  const [witnesses] = useState<Record<string, Witness[]>>({
-    motor: [
-      {
-        Name: "Check Engine",
-        Description:
-          "Indica que la unidad de control detectó una condición anómala en el motor o en el sistema de emisiones.",
-        RecommendedAction:
-          "Evita exigencias fuertes al motor y agenda una revisión en un taller autorizado lo antes posible.",
-        UrlImage: iconMotor,
-      },
-      {
-        Name: "Temperatura del motor",
-        Description:
-          "Se enciende cuando la temperatura del refrigerante supera el rango recomendado.",
-        RecommendedAction:
-          "Detén el vehículo en un lugar seguro, apaga el motor y espera a que se enfríe. No abras el radiador en caliente.",
-        UrlImage: iconMotor,
-      },
-    ],
-    seguridad: [
-      {
-        Name: "Airbag",
-        Description:
-          "Indica una posible falla en el sistema de retención suplementaria (airbags).",
-        RecommendedAction:
-          "Dirígete a un taller especializado para revisar el sistema, ya que los airbags podrían no activarse en un choque.",
-        UrlImage: iconMotor,
-      },
-      {
-        Name: "ABS",
-        Description:
-          "Señala un problema en el sistema de frenos antibloqueo (ABS). El frenado convencional sigue funcionando.",
-        RecommendedAction:
-          "Conduce con precaución, evitando frenadas bruscas, y agenda revisión en un centro de servicio.",
-        UrlImage: iconMotor,
-      },
-    ],
-    electricos: [
-      {
-        Name: "Batería / Carga",
-        Description:
-          "Indica una anomalía en el sistema de carga (alternador, batería o cableado).",
-        RecommendedAction:
-          "Evita hacer trayectos largos hasta que un técnico revise el sistema de carga.",
-        UrlImage: iconElectric,
-      },
-    ],
-  });
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedWitness, setSelectedWitness] = useState<ApiWitness | null>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedWitness, setSelectedWitness] = useState<Witness | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategory === null) {
+      setSelectedCategory(categories[0].categoryId);
+    }
+  }, [categories, selectedCategory]);
 
   const borderColor =
     (theme.palette as { border?: { main?: string } })?.border?.main ??
@@ -130,17 +49,6 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
 
   const isDark = theme.palette.mode === "dark";
 
-  // Seleccionamos por defecto la primera categoría disponible (mock)
-  if (!selectedCategory && categories.length > 0) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    setSelectedCategory(categories[0].Id);
-  }
-
-  const handleCategoryClick = async (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setError(null);
-  };
-
   const hexToRgba = (hex: string, opacity: number) => {
     const cleaned = hex.replace("#", "");
     const bigint = Number.parseInt(cleaned, 16);
@@ -150,9 +58,17 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const selectedCategoryObj = categories?.find(
-    (c) => c.Id === selectedCategory,
+  const selectedCategoryObj = categories.find(
+    (c) => c.categoryId === selectedCategory,
   );
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -192,23 +108,63 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
         </Typography>
       </Paper>
 
+      {vehicleBrand ? (
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 1,
+            px: 2,
+            py: 0.75,
+            borderRadius: 2,
+            border: `1px solid ${borderColor}`,
+            bgcolor: surfaceAlt,
+            alignSelf: "flex-start",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              color: theme.palette.text.secondary,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Marca
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "0.875rem",
+              fontWeight: 700,
+              color: theme.palette.text.primary,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            {vehicleBrand}
+          </Typography>
+        </Box>
+      ) : null}
+
       {error ? (
         <Alert severity="error">{error}</Alert>
-      ) : categories && categories.length === 0 ? (
+      ) : categories.length === 0 ? (
         <Alert severity="warning">
           No se encontraron testigos para esta marca.
         </Alert>
       ) : null}
 
       {/* Grid de categorías */}
-      {categories && categories.length > 0 ? (
+      {categories.length > 0 ? (
         <Grid container spacing={2}>
           {categories.map((category) => {
-            const bgColor = category.Color || "#e5e7eb";
-            const isSelected = selectedCategory === category.Id;
+            const bgColor = category.color || "#e5e7eb";
+            const isSelected = selectedCategory === category.categoryId;
+            const imgSrc = category.urlImage || iconMotor;
 
             return (
-              <Grid key={category.Id} size={{ xs: 12, md: 6, lg: 4 }}>
+              <Grid key={category.categoryId} size={{ xs: 12, md: 6, lg: 4 }}>
                 <Paper
                   sx={{
                     display: "flex",
@@ -242,7 +198,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                         : `${theme.palette.primary.light}1A`,
                     },
                   }}
-                  onClick={() => handleCategoryClick(category.Id)}
+                  onClick={() => setSelectedCategory(category.categoryId)}
                 >
                   <Box
                     sx={{
@@ -257,14 +213,12 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                       flexShrink: 0,
                     }}
                   >
-                    {category.UrlImage ? (
-                      <Box
-                        component="img"
-                        src={category.UrlImage}
-                        alt={category.Name}
-                        sx={{ width: 24, height: 24, objectFit: "contain" }}
-                      />
-                    ) : null}
+                    <Box
+                      component="img"
+                      src={imgSrc}
+                      alt={category.categoryName}
+                      sx={{ width: 24, height: 24, objectFit: "contain" }}
+                    />
                   </Box>
 
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -275,7 +229,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                         color: theme.palette.text.primary,
                       }}
                     >
-                      {category.Name}
+                      {category.categoryName}
                     </Typography>
                     <Typography
                       sx={{
@@ -284,7 +238,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                       }}
                       noWrap
                     >
-                      {category.Description}
+                      {category.description}
                     </Typography>
                   </Box>
 
@@ -319,7 +273,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
               color: theme.palette.text.primary,
             }}
           >
-            {selectedCategoryObj?.Name ?? "Categoría no disponible"}
+            {selectedCategoryObj?.categoryName ?? "Categoría no disponible"}
           </Typography>
           <Typography
             sx={{
@@ -327,24 +281,25 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
               color: theme.palette.text.secondary,
             }}
           >
-            {selectedCategoryObj?.Description ?? "Descripción no disponible"}
+            {selectedCategoryObj?.description ?? "Descripción no disponible"}
           </Typography>
         </Box>
 
         <Box sx={{ p: 3, pt: 0 }}>
-          {!selectedCategory || !witnesses[selectedCategory] ? (
+          {!selectedCategoryObj?.witnesses?.length ? (
             <Alert severity="warning">
               No se encontraron testigos para esta categoría.
             </Alert>
           ) : null}
 
-          {selectedCategory && witnesses[selectedCategory] ? (
+          {selectedCategoryObj?.witnesses?.length ? (
             <Grid container spacing={2}>
-              {witnesses[selectedCategory].map((w) => {
-                const bg = selectedCategoryObj?.Color ?? "#e5e7eb";
+              {selectedCategoryObj.witnesses.map((w) => {
+                const bg = selectedCategoryObj.color ?? "#e5e7eb";
+                const imgSrc = w.urlImage || iconElectric;
 
                 return (
-                  <Grid key={w.Name} size={{ xs: 12, sm: 6, md: 3 }}>
+                  <Grid key={w.id} size={{ xs: 12, sm: 6, md: 3 }}>
                     <Paper
                       sx={{
                         height: "100%",
@@ -371,18 +326,16 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                           overflow: "hidden",
                         }}
                       >
-                        {w.UrlImage ? (
-                          <Box
-                            component="img"
-                            src={w.UrlImage}
-                            alt={w.Name}
-                            sx={{
-                              width: 24,
-                              height: 24,
-                              objectFit: "contain",
-                            }}
-                          />
-                        ) : null}
+                        <Box
+                          component="img"
+                          src={imgSrc}
+                          alt={w.name}
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            objectFit: "contain",
+                          }}
+                        />
                       </Box>
 
                       <Typography
@@ -392,7 +345,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                           color: theme.palette.text.primary,
                         }}
                       >
-                        {w.Name}
+                        {w.name}
                       </Typography>
 
                       <Box sx={{ mt: "auto" }}>
@@ -426,7 +379,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
       >
         {selectedWitness ? (
           <>
-            <DialogTitle>{selectedWitness.Name}</DialogTitle>
+            <DialogTitle>{selectedWitness.name}</DialogTitle>
             <DialogContent dividers>
               <Typography
                 sx={{
@@ -435,17 +388,17 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                   color: theme.palette.text.secondary,
                 }}
               >
-                {selectedWitness.Description}
+                {selectedWitness.description}
               </Typography>
 
-              {selectedWitness.RecommendedAction ? (
+              {selectedWitness.recommendedAction ? (
                 <Box
                   sx={{
                     mt: 2,
                     p: 2,
                     borderRadius: 2,
                     bgcolor: hexToRgba(
-                      selectedCategoryObj?.Color ?? "#f97373",
+                      selectedCategoryObj?.color ?? "#f97373",
                       0.15,
                     ),
                   }}
@@ -465,7 +418,7 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
                       color: theme.palette.text.secondary,
                     }}
                   >
-                    {selectedWitness.RecommendedAction}
+                    {selectedWitness.recommendedAction}
                   </Typography>
                 </Box>
               ) : null}
@@ -481,4 +434,3 @@ export function Testigos({ plate: _plate }: Readonly<TestigosProps>) {
     </Box>
   );
 }
-

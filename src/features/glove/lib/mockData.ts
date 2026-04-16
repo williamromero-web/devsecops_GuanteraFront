@@ -2,16 +2,16 @@ import type { Vehicle } from "../types/domain";
 
 export const MOCK_VEHICLES: Vehicle[] = [
   {
-    plate: "LJL502"
+    plate: "MKQ689"
   },
   {
     plate: "GGZ404"
   },
   {
-    plate: "ABC123",
+    plate: "BLL353",
   },
   {
-    plate: "MVV421",
+    plate: "RML886",
   }
 ];
 
