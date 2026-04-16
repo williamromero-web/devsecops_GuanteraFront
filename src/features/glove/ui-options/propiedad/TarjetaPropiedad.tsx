@@ -21,7 +21,11 @@ import { getDocumentTypeByCode, uploadPropertyCardDocuments } from "../../servic
 function findNodeByFace(nodes: VehicleDocumentNode[], face: "front" | "back"): VehicleDocumentNode | undefined {
   const found = nodes.find((n) => n.name.toLowerCase().endsWith(`-${face}`));
   if (found) return found;
-  // Fallback: assume backend order is reliable and first=front, second=back
+  // Fallback: if looking for "back" but no "-back" suffix, try "-reverse"
+  if (face === "back") {
+    const reverse = nodes.find((n) => n.name.toLowerCase().endsWith("-reverse"));
+    if (reverse) return reverse;
+  }
   const index = face === "front" ? 0 : 1;
   return nodes[index];
 }
