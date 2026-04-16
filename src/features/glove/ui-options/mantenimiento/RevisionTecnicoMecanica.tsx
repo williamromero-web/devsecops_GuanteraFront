@@ -218,7 +218,7 @@ export function RevisionTecnicoMecanica({
               fontWeight: 700,
               color:
                 statusType === "OK"
-                  ? theme.palette.primary.light
+                  ? (theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark)
                   : statusType === "PRÓXIMO A VENCER"
                     ? theme.palette.warning.main
                     : statusType === "VENCIDO"
@@ -276,14 +276,14 @@ export function RevisionTecnicoMecanica({
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -359,14 +359,14 @@ export function RevisionTecnicoMecanica({
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}

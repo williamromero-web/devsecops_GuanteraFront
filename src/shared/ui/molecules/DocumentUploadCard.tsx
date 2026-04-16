@@ -80,7 +80,7 @@ export function DocumentUploadCard({
   fileName,
   fileSizeLabel,
   hasFile,
-  accept = "application/pdf,image/*",
+  accept = "application/pdf,image/png,image/jpeg",
   maxBytes = 5 * 1024 * 1024,
   documentTypeId,
   vehicleId,
@@ -279,7 +279,7 @@ export function DocumentUploadCard({
           >
             <IconButton
               size="small"
-              sx={{ color: theme.palette.text.tertiary }}
+              sx={{ color: theme.palette.text.secondary }}
               aria-label="Ayuda"
             >
               <HelpOutlineIcon fontSize="small" />
@@ -309,7 +309,7 @@ export function DocumentUploadCard({
             }}
           >
             <DescriptionIcon
-              sx={{ color: theme.palette.text.tertiary, fontSize: "1.5rem" }}
+              sx={{ color: theme.palette.text.secondary, fontSize: "1.5rem" }}
             />
             <Box sx={{ minWidth: 0 }}>
               <Typography
@@ -370,7 +370,7 @@ export function DocumentUploadCard({
                   onClick={handleView}
                   sx={{
                     color: theme.palette.text.secondary,
-                    "&:hover": { color: theme.palette.primary.light },
+                    "&:hover": { color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark },
                   }}
                   aria-label="Ver"
                 >
@@ -395,7 +395,7 @@ export function DocumentUploadCard({
                   onClick={() => setIsEditing(true)}
                   sx={{
                     color: theme.palette.text.secondary,
-                    "&:hover": { color: theme.palette.primary.light },
+                    "&:hover": { color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark },
                   }}
                   aria-label="Editar"
                 >
@@ -415,6 +415,15 @@ export function DocumentUploadCard({
           onChange={(e) => {
             const file = e.target.files?.[0] ?? null;
             if (!file) return;
+
+            const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
+            if (!allowedTypes.includes(file.type)) {
+              setLocalError("Formato no permitido. Solo se aceptan archivos PDF, PNG o JPEG.");
+              setSelectedFile(null);
+              e.target.value = "";
+              return;
+            }
+
             if (file.size > maxBytes) {
               setLocalError(
                 `El archivo supera el límite de ${bytesToLabel(maxBytes)}.`,
@@ -423,6 +432,7 @@ export function DocumentUploadCard({
               e.target.value = "";
               return;
             }
+
             setLocalError(null);
             setSelectedFile(file);
           }}
@@ -442,7 +452,11 @@ export function DocumentUploadCard({
               size="small"
               variant="outlined"
               startIcon={<UploadFileIcon />}
-              sx={{ textTransform: "none" }}
+              sx={{
+                textTransform: "none",
+                borderColor: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
+                color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
+              }}
             >
               {updateLabel}
             </Button>
@@ -463,7 +477,12 @@ export function DocumentUploadCard({
               variant="contained"
               disabled={!selectedFile || saving || (!onSave && !documentTypeId)}
               startIcon={<SaveIcon />}
-              sx={{ textTransform: "none" }}
+              sx={{
+                bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                color: "#FFFFFF",
+                "&:hover": { bgcolor: theme.palette.primary.light, color: "#181818" },
+                textTransform: "none",
+              }}
             >
               {saveLabel}
             </Button>

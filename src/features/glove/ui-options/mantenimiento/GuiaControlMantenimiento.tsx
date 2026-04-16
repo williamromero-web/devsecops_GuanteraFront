@@ -130,14 +130,14 @@ export function GuiaControlMantenimiento({
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
