@@ -366,7 +366,7 @@ export function DocumentUploadCard({
               <>
                 <IconButton
                   size="small"
-                  disabled={!hasFile || !onView}
+                  disabled={!hasFile || (!onView && !savedFileUrl && !selectedFile)}
                   onClick={handleView}
                   sx={{
                     color: theme.palette.text.secondary,
