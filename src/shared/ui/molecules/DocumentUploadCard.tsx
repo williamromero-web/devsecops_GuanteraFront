@@ -22,7 +22,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTheme } from '@mui/material/styles';
-import { httpDelete, resolveApiBaseUrl } from '../../../features/glove/lib/httpClient';
+import { httpDelete, httpGetBlob } from '../../../features/glove/lib/httpClient';
 import { uploadDocument } from '../../../features/glove/services';
 
 export interface DocumentUploadCardProps {
@@ -140,7 +140,7 @@ export function DocumentUploadCard({
 		a.remove();
 	};
 
-	const handleView = () => {
+	const handleView = async () => {
 		if (onView) {
 			onView();
 			return;
@@ -154,7 +154,14 @@ export function DocumentUploadCard({
 			return;
 		}
 		if (nodeId) {
-			openInNewTab(`${resolveApiBaseUrl()}/vehicledocument/view/${nodeId}`);
+			try {
+				setLocalError(null);
+				const blob = await httpGetBlob(`/vehicledocument/view/${nodeId}`);
+				openInNewTab(URL.createObjectURL(blob));
+			} catch (e) {
+				const msg = e instanceof Error ? e.message : 'No se pudo abrir el documento';
+				setLocalError(msg);
+			}
 		}
 	};
 

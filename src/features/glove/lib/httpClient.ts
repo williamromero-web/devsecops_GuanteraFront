@@ -139,6 +139,26 @@ export async function httpGet<T>(
   );
 }
 
+export async function httpGetBlob(
+  path: string,
+  options?: HttpClientOptions,
+): Promise<Blob> {
+  const url = buildUrl(path, options?.baseUrl);
+  const headers = buildHeaders(undefined, options, true);
+
+  const response = await fetch(url, {
+    credentials: 'include',
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  return response.blob();
+}
+
 export async function httpPost<T>(
   path: string,
   body: unknown,
