@@ -105,12 +105,23 @@ export function DocumentUploadCard({
 	const [localError, setLocalError] = useState<string | null>(null);
 	const [savedFileUrl, setSavedFileUrl] = useState<string | null>(null);
 	const savedFileUrlRef = useRef<string | null>(null);
+	// Cache para blob URL de documentos del backend — evita re-fetch al abrir varias veces
+	const viewedBackendUrlRef = useRef<{ nodeId: string; url: string } | null>(null);
 
 	useEffect(() => {
 		return () => {
 			if (savedFileUrlRef.current) URL.revokeObjectURL(savedFileUrlRef.current);
+			if (viewedBackendUrlRef.current) URL.revokeObjectURL(viewedBackendUrlRef.current.url);
 		};
 	}, []);
+
+	// Invalida cache de blob URL cuando cambia el nodeId
+	useEffect(() => {
+		if (viewedBackendUrlRef.current && viewedBackendUrlRef.current.nodeId !== nodeId) {
+			URL.revokeObjectURL(viewedBackendUrlRef.current.url);
+			viewedBackendUrlRef.current = null;
+		}
+	}, [nodeId]);
 
 	const handleDelete = async () => {
 		if (!nodeId) return;
@@ -154,10 +165,17 @@ export function DocumentUploadCard({
 			return;
 		}
 		if (nodeId) {
+			// Reutiliza blob URL cacheado si el nodeId no cambió
+			if (viewedBackendUrlRef.current?.nodeId === nodeId) {
+				openInNewTab(viewedBackendUrlRef.current.url);
+				return;
+			}
 			try {
 				setLocalError(null);
 				const blob = await httpGetBlob(`/vehicledocument/view/${nodeId}`);
-				openInNewTab(URL.createObjectURL(blob));
+				const blobUrl = URL.createObjectURL(blob);
+				viewedBackendUrlRef.current = { nodeId, url: blobUrl };
+				openInNewTab(blobUrl);
 			} catch (e) {
 				const msg = e instanceof Error ? e.message : 'No se pudo abrir el documento';
 				setLocalError(msg);
