@@ -20,15 +20,23 @@ import { getPropertyCard, getVehicleDocumentNodes, updatePropertyCardNumber, typ
 import { getDocumentTypeByCode, uploadPropertyCardDocuments } from "../../services";
 
 function findNodeByFace(nodes: VehicleDocumentNode[], face: "front" | "back"): VehicleDocumentNode | undefined {
-  const found = nodes.find((n) => n.name.toLowerCase().endsWith(`-${face}`));
+  // Strip extension before checking suffix (e.g. "name-reverse.jpg" → "name-reverse")
+  const stripExtension = (name: string) => name.replace(/\.[^.]+$/, '');
+  const stripParens = (name: string) => name.replace(/\s*\(\d+\)/, '');
+
+  const found = nodes.find((n) => {
+    const base = stripExtension(stripParens(n.name.toLowerCase()));
+    return base.endsWith(`-${face}`);
+  });
   if (found) return found;
   // Fallback: if looking for "back" but no "-back" suffix, try "-reverse"
   if (face === "back") {
-    const reverse = nodes.find((n) => n.name.toLowerCase().endsWith("-reverse"));
+    const reverse = nodes.find((n) => {
+      const base = stripExtension(stripParens(n.name.toLowerCase()));
+      return base.endsWith('-reverse');
+    });
     if (reverse) return reverse;
   }
-  // NO index fallback — relying on array index is unreliable after deletions
-  // (e.g. deleting front leaves reverse at index 0, which would wrongly be returned as front)
   return undefined;
 }
 
