@@ -100,6 +100,12 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
   const [roadKitId, setRoadKitId] = useState<number | null>(null);
   const [extinguisherId, setExtinguisherId] = useState<number | null>(null);
 
+  const checkedColor = theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark;
+  const switchSx = {
+    "& .MuiSwitch-switchBase.Mui-checked": { color: checkedColor },
+    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: checkedColor },
+  };
+
   const [kitItems, setKitItems] = useState<Record<string, boolean>>({
     gato: false,
     senales: false,
@@ -348,6 +354,7 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
                       setKitItems({ ...kitItems, [item.id]: e.target.checked })
                     }
                     disabled={!isEditing}
+                    sx={switchSx}
                   />
                 }
                 label={
@@ -389,6 +396,7 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
                     checked={extintorPresente}
                     onChange={(e) => setExtintorPresente(e.target.checked)}
                     disabled={!isEditing}
+                    sx={switchSx}
                   />
                 }
                 label={

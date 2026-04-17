@@ -61,6 +61,12 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
   const [error, setError] = useState<string | null>(null);
   const [firstAidKitId, setFirstAidKitId] = useState<number | null>(null);
 
+  const checkedColor = theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark;
+  const switchSx = {
+    "& .MuiSwitch-switchBase.Mui-checked": { color: checkedColor },
+    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: checkedColor },
+  };
+
   const [kitItems, setKitItems] = useState<Record<string, boolean>>({
     cotton: false,
     elastic_band: false,
@@ -266,6 +272,7 @@ export function Botiquin({ plate: _plate, vehicleId: _vehicleId }: Readonly<Boti
                       setKitItems({ ...kitItems, [item.id]: e.target.checked })
                     }
                     disabled={!isEditing}
+                    sx={switchSx}
                   />
                 }
                 label={
