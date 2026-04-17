@@ -209,7 +209,8 @@ export function LicenciaConduccion({
         driverLinceCategories: categorias
           .filter(cat => cat.categoryType && cat.expiredDate)
           .map(cat => ({
-            ID: cat.id ?? null,
+            // temp-* IDs are new categories → send null so backend creates them
+            ID: cat.id?.startsWith("temp-") ? null : cat.id,
             name: cat.categoryType,
             expiredDate: cat.expiredDate,
           })),
@@ -242,7 +243,7 @@ export function LicenciaConduccion({
   const handleAddCategoria = () => {
     setCategorias((prev) => [
       ...prev,
-      { id: null, categoryType: "", expiredDate: "" },
+      { id: `temp-${crypto.randomUUID()}`, categoryType: "", expiredDate: "" },
     ]);
   };
 
@@ -254,13 +255,18 @@ export function LicenciaConduccion({
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
 
+    const isTempId = deleteId?.startsWith("temp-") ?? false;
+
     try {
       setConfirmDeleteOpen(false);
-      
-      try {
-        await httpDelete(`/driverlicensecategory/category/${deleteId}`);
-      } catch {
-        // Ignore delete errors to keep UX resilient
+
+      // Only call backend delete if it's not a temp (not-yet-saved) category
+      if (!isTempId) {
+        try {
+          await httpDelete(`/driverlicensecategory/category/${deleteId}`);
+        } catch {
+          // Ignore delete errors to keep UX resilient
+        }
       }
 
       setCategorias((prev) => prev.filter((cat) => cat.id !== deleteId));
@@ -585,9 +591,12 @@ export function LicenciaConduccion({
                   ? { label: "VENCIDO", icon: ErrorIcon, color: "error" as const }
                   : null;
 
+            // Use stable key: id if exists, otherwise a unique index-based key
+            const catKey = cat.id ?? `new-cat-${index}`;
+
             return (
             <Paper
-              key={cat.id}
+              key={catKey}
               variant="outlined"
               sx={{ p: 2, borderColor, borderRadius: 2 }}
             >
