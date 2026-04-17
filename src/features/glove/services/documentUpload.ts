@@ -45,18 +45,25 @@ export interface DocumentUploadParams {
  * Formatea una fecha a formato DD-MM-YYYY
  */
 export function formatDateToDD_MM_YYYY(date: Date): string {
-  return `${String(date.getDate()).padStart(2, "0")}-${String(
-    date.getMonth() + 1,
-  ).padStart(2, "0")}-${date.getFullYear()}`;
+  return `${String(date.getUTCDate()).padStart(2, "0")}-${String(
+    date.getUTCMonth() + 1,
+  ).padStart(2, "0")}-${date.getUTCFullYear()}`;
 }
 
 /**
  * Formatea una fecha string (ISO u otro) a DD-MM-YYYY si es posible
+ * Usa parsing manual para evitar problemas de timezone cuando el input es YYYY-MM-DD
  */
 export function formatToDD_MM_YYYY(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null;
+  // Parse manually to avoid timezone issues with ISO strings like "2016-07-15"
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, year, month, day] = match;
+    return `${day}-${month}-${year}`;
+  }
   const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr; // Retorna como está si no se puede parsear
+  if (isNaN(date.getTime())) return dateStr;
   return formatDateToDD_MM_YYYY(date);
 }
 
