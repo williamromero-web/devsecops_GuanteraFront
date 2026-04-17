@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -23,11 +24,16 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
 import { useState, useEffect } from "react";
 import { useGuanteraConfig } from "../../providers/GuanteraProvider";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules";
+import { DateField } from "../../../../shared/ui/atoms";
 import { httpDelete, httpGet, httpPut, httpPutForm } from "../../lib/httpClient";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
+import { computeExpiryStatus } from "../../lib/expiryStatus";
 
 const TipoCategoria = {
   A1: "A1",
@@ -203,7 +209,8 @@ export function LicenciaConduccion({
         driverLinceCategories: categorias
           .filter(cat => cat.categoryType && cat.expiredDate)
           .map(cat => ({
-            ID: cat.id ?? null,
+            // temp-* IDs are new categories → send null so backend creates them
+            ID: cat.id?.startsWith("temp-") ? null : cat.id,
             name: cat.categoryType,
             expiredDate: cat.expiredDate,
           })),
@@ -236,7 +243,7 @@ export function LicenciaConduccion({
   const handleAddCategoria = () => {
     setCategorias((prev) => [
       ...prev,
-      { id: null, categoryType: "", expiredDate: "" },
+      { id: `temp-${crypto.randomUUID()}`, categoryType: "", expiredDate: "" },
     ]);
   };
 
@@ -248,13 +255,18 @@ export function LicenciaConduccion({
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
 
+    const isTempId = deleteId?.startsWith("temp-") ?? false;
+
     try {
       setConfirmDeleteOpen(false);
-      
-      try {
-        await httpDelete(`/driverlicensecategory/category/${deleteId}`);
-      } catch {
-        // Ignore delete errors to keep UX resilient
+
+      // Only call backend delete if it's not a temp (not-yet-saved) category
+      if (!isTempId) {
+        try {
+          await httpDelete(`/driverlicensecategory/category/${deleteId}`);
+        } catch {
+          // Ignore delete errors to keep UX resilient
+        }
       }
 
       setCategorias((prev) => prev.filter((cat) => cat.id !== deleteId));
@@ -450,6 +462,12 @@ export function LicenciaConduccion({
                   startIcon={<CancelIcon />}
                   onClick={handleCancel}
                   disabled={saving}
+                  sx={{
+                    borderColor: theme.palette.text.secondary,
+                    color: theme.palette.text.secondary,
+                    textTransform: "none",
+                    "&:hover": { borderColor: theme.palette.text.primary, color: theme.palette.text.primary },
+                  }}
                 >
                   Cancelar
                 </Button>
@@ -459,6 +477,12 @@ export function LicenciaConduccion({
                   startIcon={<SaveIcon />}
                   onClick={handleSave}
                   disabled={saving}
+                  sx={{
+                    bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                    color: "#FFFFFF",
+                    "&:hover": { bgcolor: theme.palette.primary.light, color: "#181818" },
+                    textTransform: "none",
+                  }}
                 >
                   Guardar
                 </Button>
@@ -469,6 +493,12 @@ export function LicenciaConduccion({
                 size="small"
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditing(true)}
+                sx={{
+                  borderColor: theme.palette.text.secondary,
+                  color: theme.palette.text.secondary,
+                  textTransform: "none",
+                  "&:hover": { borderColor: theme.palette.text.primary, color: theme.palette.text.primary },
+                }}
               >
                 Editar
               </Button>
@@ -551,9 +581,22 @@ export function LicenciaConduccion({
         </Typography>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {categorias.map((cat, index) => (
+          {categorias.map((cat, index) => {
+            const catStatus = computeExpiryStatus(cat.expiredDate);
+            const catChip = catStatus === "OK"
+              ? { label: "VIGENTE", icon: CheckCircleIcon, color: "success" as const }
+              : catStatus === "PRÓXIMO A VENCER"
+                ? { label: "PRÓXIMO A VENCER", icon: WarningIcon, color: "warning" as const }
+                : catStatus === "VENCIDO"
+                  ? { label: "VENCIDO", icon: ErrorIcon, color: "error" as const }
+                  : null;
+
+            // Use stable key: id if exists, otherwise a unique index-based key
+            const catKey = cat.id ?? `new-cat-${index}`;
+
+            return (
             <Paper
-              key={cat.id}
+              key={catKey}
               variant="outlined"
               sx={{ p: 2, borderColor, borderRadius: 2 }}
             >
@@ -565,20 +608,32 @@ export function LicenciaConduccion({
                   mb: 2,
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: "0.875rem",
-                    fontWeight: 700,
-                    color: theme.palette.text.primary,
-                  }}
-                >
-                  Categoría {index + 1}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "0.875rem",
+                      fontWeight: 700,
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    Categoría {index + 1}
+                  </Typography>
+                  {catChip && (
+                    <Chip
+                      icon={<catChip.icon sx={{ fontSize: "1rem !important" }} />}
+                      label={catChip.label}
+                      color={catChip.color}
+                      size="small"
+                      sx={{ fontWeight: 600, fontSize: "0.75rem", height: 24, borderRadius: "12px" }}
+                    />
+                  )}
+                </Box>
                 {!disabledFields && (
                   <IconButton
                     size="small"
                     onClick={() => handleRemoveCategoria(cat.id)}
                     disabled={saving}
+                    sx={{ color: theme.palette.text.secondary }}
                   >
                     <DeleteOutlineIcon fontSize="small" />
                   </IconButton>
@@ -610,10 +665,9 @@ export function LicenciaConduccion({
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
+                  <DateField
                     fullWidth
                     label="Fecha de vigencia"
-                    type="date"
                     value={cat.expiredDate}
                     onChange={(e) =>
                       handleCategoriaChange(
@@ -624,12 +678,12 @@ export function LicenciaConduccion({
                     }
                     size="small"
                     disabled={disabledFields}
-                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
               </Grid>
             </Paper>
-          ))}
+            );
+          })}
         </Box>
 
         <Divider sx={{ mt: 2, mb: 2 }} />
@@ -701,7 +755,13 @@ export function LicenciaConduccion({
             variant="outlined"
             onClick={handleAddCategoria}
             disabled={saving}
-            sx={{ mt: 2 }}
+            sx={{
+              mt: 2,
+              textTransform: "none",
+              borderColor: theme.palette.text.secondary,
+              color: theme.palette.text.secondary,
+              "&:hover": { borderColor: theme.palette.text.primary, color: theme.palette.text.primary },
+            }}
           >
             Agregar otra categoría
           </Button>
@@ -718,7 +778,7 @@ export function LicenciaConduccion({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} variant="outlined">
+          <Button onClick={handleCancelDelete} variant="outlined" sx={{ textTransform: "none", borderColor: theme.palette.text.secondary, color: theme.palette.text.secondary }}>
             Cancelar
           </Button>
           <Button onClick={handleConfirmDelete} variant="contained" color="error">

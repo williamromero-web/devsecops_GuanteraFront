@@ -12,11 +12,24 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
+import InfoIcon from "@mui/icons-material/Info";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 import { getPropertyCard, getVehicleDocumentNodes, updatePropertyCardNumber, type VehicleDocumentNode } from "../../services/propertyCardService";
 import { getDocumentTypeByCode, uploadPropertyCardDocuments } from "../../services";
+
+function findNodeByFace(nodes: VehicleDocumentNode[], face: "front" | "back"): VehicleDocumentNode | undefined {
+  const found = nodes.find((n) => n.name.toLowerCase().endsWith(`-${face}`));
+  if (found) return found;
+  // Fallback: if looking for "back" but no "-back" suffix, try "-reverse"
+  if (face === "back") {
+    const reverse = nodes.find((n) => n.name.toLowerCase().endsWith("-reverse"));
+    if (reverse) return reverse;
+  }
+  const index = face === "front" ? 0 : 1;
+  return nodes[index];
+}
 
 export interface TarjetaPropiedadProps {
   vehicleId: number;
@@ -132,15 +145,21 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
   };
 
   const handleSaveFrontNode = async (file: File) => {
+    const frontNode = findNodeByFace(documentNodes, "front");
+    if (!frontNode) {
+      console.error("handleSaveFrontNode: front node not found");
+      setError("No se encontró el nodo frontal del documento.");
+      return;
+    }
     setFrontFile(file);
     setNodeFiles((prev) => ({
       ...prev,
-      ...(documentNodes[0] ? { [documentNodes[0].nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` } } : {}),
+      [frontNode.nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` },
     }));
     setFileChanged(true);
     try {
-      console.log("document type tc: ", documentTypeId); //TODO parece que esto esta pasando primero que el useEffect que lo carga, revisar
-      
+      console.log("document type tc: ", documentTypeId);
+
       await uploadPropertyCardDocuments({ documentTypeId, vehicleId: String(vehicleId), frontFile: file, collectionId: documentCollectionId ?? undefined });
       setMessage("Cara frontal guardada correctamente.");
       if (documentCollectionId) await loadNodes(documentCollectionId);
@@ -150,10 +169,16 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
   };
 
   const handleSaveBackNode = async (file: File) => {
+    const backNode = findNodeByFace(documentNodes, "back");
+    if (!backNode) {
+      console.error("handleSaveBackNode: back node not found");
+      setError("No se encontró el nodo trasero del documento.");
+      return;
+    }
     setBackFile(file);
     setNodeFiles((prev) => ({
       ...prev,
-      ...(documentNodes[1] ? { [documentNodes[1].nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` } } : {}),
+      [backNode.nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` },
     }));
     setFileChanged(true);
     try {
@@ -167,6 +192,36 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          La digitalización de estos documentos es únicamente para fines de registro y no reemplaza los documentos originales, 
+          los cuales deberán presentarse en caso de ser requeridos por las autoridades competentes. Esta plataforma, 
+          únicamente las visibiliza, NO es responsable de lo que la fuente de información emita
+        </Typography>
+      </Paper>
+
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -209,14 +264,14 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -307,15 +362,16 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
                   }
                   onClick={isEditing ? handleSave : () => setIsEditing(true)}
                   sx={{
-                    bgcolor: theme.palette.primary.light,
-                    color: "#000",
+                    bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                    color: "#FFFFFF",
                     fontWeight: 600,
                     textTransform: "none",
                     px: 3,
                     py: 1.5,
                     borderRadius: 2,
                     "&:hover": {
-                      bgcolor: theme.palette.primary.main,
+                      bgcolor: theme.palette.primary.light,
+                      color: "#181818",
                     },
                     "&:disabled": {
                       bgcolor: theme.palette.action.disabledBackground,
@@ -366,14 +422,14 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -382,48 +438,54 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
         {documentsExpanded && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {/* Front face */}
-            {documentNodes[0] ? (
-              <DocumentUploadCard
-                key={documentNodes[0].nodeId}
-                instruction={`Front face — Adjunte aquí la cara frontal de la tarjeta de propiedad (Placa: ${plate}).`}
-                hasFile={nodeFiles[documentNodes[0].nodeId]?.hasFile ?? false}
-                fileName={nodeFiles[documentNodes[0].nodeId]?.fileName ?? documentNodes[0].name}
-                fileSizeLabel={nodeFiles[documentNodes[0].nodeId]?.fileSizeLabel}
-                nodeId={nodeFiles[documentNodes[0].nodeId]?.hasFile ? documentNodes[0].nodeId : undefined}
-                onSave={handleSaveFrontNode}
-                onDelete={documentCollectionId ? () => window.location.reload() : undefined}
-              />
-            ) : (
-              <DocumentUploadCard
-                instruction={`Front face — Adjunte aquí la cara frontal de la tarjeta de propiedad (Placa: ${plate}).`}
-                hasFile={!!frontFile}
-                fileName={frontFile?.name ?? "Sin archivo"}
-                fileSizeLabel={frontFile ? `${(frontFile.size / 1024).toFixed(1)} KB` : undefined}
-                onSave={handleSaveFrontNode}
-              />
-            )}
+            {((): React.ReactElement | undefined => {
+              const frontNode = findNodeByFace(documentNodes, "front");
+              return frontNode ? (
+                <DocumentUploadCard
+                  key={frontNode.nodeId}
+                  instruction={`Front face — Adjunte aquí la cara frontal de la tarjeta de propiedad (Placa: ${plate}).`}
+                  hasFile={nodeFiles[frontNode.nodeId]?.hasFile ?? false}
+                  fileName={nodeFiles[frontNode.nodeId]?.fileName ?? frontNode.name}
+                  fileSizeLabel={nodeFiles[frontNode.nodeId]?.fileSizeLabel}
+                  nodeId={nodeFiles[frontNode.nodeId]?.hasFile ? frontNode.nodeId : undefined}
+                  onSave={handleSaveFrontNode}
+                  onDelete={documentCollectionId ? () => window.location.reload() : undefined}
+                />
+              ) : (
+                <DocumentUploadCard
+                  instruction={`Front face — Adjunte aquí la cara frontal de la tarjeta de propiedad (Placa: ${plate}).`}
+                  hasFile={!!frontFile}
+                  fileName={frontFile?.name ?? "Sin archivo"}
+                  fileSizeLabel={frontFile ? `${(frontFile.size / 1024).toFixed(1)} KB` : undefined}
+                  onSave={handleSaveFrontNode}
+                />
+              );
+            })()}
 
             {/* Back face */}
-            {documentNodes[1] ? (
-              <DocumentUploadCard
-                key={documentNodes[1].nodeId}
-                instruction={`Back face — Adjunte aquí la cara trasera de la tarjeta de propiedad (Placa: ${plate}).`}
-                hasFile={nodeFiles[documentNodes[1].nodeId]?.hasFile ?? false}
-                fileName={nodeFiles[documentNodes[1].nodeId]?.fileName ?? documentNodes[1].name}
-                fileSizeLabel={nodeFiles[documentNodes[1].nodeId]?.fileSizeLabel}
-                nodeId={nodeFiles[documentNodes[1].nodeId]?.hasFile ? documentNodes[1].nodeId : undefined}
-                onSave={handleSaveBackNode}
-                onDelete={documentCollectionId ? () => window.location.reload() : undefined}
-              />
-            ) : (
-              <DocumentUploadCard
-                instruction={`Back face — Adjunte aquí la cara trasera de la tarjeta de propiedad (Placa: ${plate}).`}
-                hasFile={!!backFile}
-                fileName={backFile?.name ?? "Sin archivo"}
-                fileSizeLabel={backFile ? `${(backFile.size / 1024).toFixed(1)} KB` : undefined}
-                onSave={handleSaveBackNode}
-              />
-            )}
+            {((): React.ReactElement | undefined => {
+              const backNode = findNodeByFace(documentNodes, "back");
+              return backNode ? (
+                <DocumentUploadCard
+                  key={backNode.nodeId}
+                  instruction={`Back face — Adjunte aquí la cara trasera de la tarjeta de propiedad (Placa: ${plate}).`}
+                  hasFile={nodeFiles[backNode.nodeId]?.hasFile ?? false}
+                  fileName={nodeFiles[backNode.nodeId]?.fileName ?? backNode.name}
+                  fileSizeLabel={nodeFiles[backNode.nodeId]?.fileSizeLabel}
+                  nodeId={nodeFiles[backNode.nodeId]?.hasFile ? backNode.nodeId : undefined}
+                  onSave={handleSaveBackNode}
+                  onDelete={documentCollectionId ? () => window.location.reload() : undefined}
+                />
+              ) : (
+                <DocumentUploadCard
+                  instruction={`Back face — Adjunte aquí la cara trasera de la tarjeta de propiedad (Placa: ${plate}).`}
+                  hasFile={!!backFile}
+                  fileName={backFile?.name ?? "Sin archivo"}
+                  fileSizeLabel={backFile ? `${(backFile.size / 1024).toFixed(1)} KB` : undefined}
+                  onSave={handleSaveBackNode}
+                />
+              );
+            })()}
           </Box>
         )}
       </Paper>

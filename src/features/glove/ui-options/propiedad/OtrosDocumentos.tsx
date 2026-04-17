@@ -15,12 +15,14 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { DateField } from "../../../../shared/ui/atoms";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import DescriptionIcon from "@mui/icons-material/Description";
+import InfoIcon from "@mui/icons-material/Info";
 import { useState, useEffect } from "react";
 import { formatToDD_MM_YYYY, uploadOtrosDocumentos } from "../../services";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
@@ -53,6 +55,11 @@ export function OtrosDocumentos({
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
+
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
 
   const { documents: otherDocuments, error: loadingError, refetch } = useOtherDocuments(_plate);
 
@@ -381,6 +388,36 @@ export function OtrosDocumentos({
         </DialogActions>
       </Dialog>
       
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          La digitalización de estos documentos es únicamente para fines de registro y no reemplaza los documentos originales, 
+          los cuales deberán presentarse en caso de ser requeridos por las autoridades competentes. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita
+        </Typography>
+      </Paper>
+
       {loadingError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {loadingError}
@@ -484,43 +521,27 @@ export function OtrosDocumentos({
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <DateField
                 fullWidth
                 label="Fecha expedición"
-                type="date"
                 value={doc.fechaExpedicion}
                 variant="outlined"
                 size="small"
                 required
                 disabled={!isEditing}
-                // error={submitted}
-                // error={submitted && !doc.fechaExpedicion}
-                InputLabelProps={{
-                  shrink: true,
-                }}
                 onChange={(e) =>
                   handleInputChange(docIndex, "fechaExpedicion", e.target.value)
                 }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <DateField
                 fullWidth
                 label="Fecha vencimiento"
-                type="date"
                 value={doc.fechaVencimiento}
                 variant="outlined"
                 size="small"
                 disabled={!isEditing}
-                InputLabelProps={{
-                  shrink: true,
-                }}
                 onChange={(e) =>
                   handleInputChange(
                     docIndex,
@@ -528,12 +549,6 @@ export function OtrosDocumentos({
                     e.target.value,
                   )
                 }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -637,11 +652,12 @@ export function OtrosDocumentos({
                   sx={{
                     mb: 2,
                     textTransform: "none",
-                    borderColor: theme.palette.primary.light,
-                    color: theme.palette.primary.light,
+                    borderColor: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
+                    color: theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark,
                     "&:hover": {
-                      borderColor: theme.palette.primary.main,
-                      bgcolor: `${theme.palette.primary.light}20`,
+                      borderColor: theme.palette.primary.light,
+                      color: theme.palette.primary.light,
+                      bgcolor: "transparent",
                     },
                   }}
                 >
@@ -798,15 +814,16 @@ export function OtrosDocumentos({
           variant="contained"
           startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
           sx={{
-            bgcolor: theme.palette.primary.light,
-            color: "#000",
+            bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+            color: "#FFFFFF",
             fontWeight: 600,
             textTransform: "none",
             px: 3,
             py: 1.5,
             borderRadius: 2,
             "&:hover": {
-              bgcolor: theme.palette.primary.main,
+              bgcolor: theme.palette.primary.light,
+              color: "#181818",
             },
             "&:disabled": {
               bgcolor: theme.palette.action.disabledBackground,

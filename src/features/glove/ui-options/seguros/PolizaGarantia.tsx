@@ -2,6 +2,7 @@ import { Alert, Box, Paper, Typography, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InfoIcon from "@mui/icons-material/Info";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
@@ -18,6 +19,11 @@ export function PolizaGarantia({ plate, vehicleId: vehicleIdProp }: Readonly<Pol
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
+
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
 
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -69,6 +75,37 @@ export function PolizaGarantia({ plate, vehicleId: vehicleIdProp }: Readonly<Pol
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia,
+          consulte directamente con quien los expide, las entidades oficiales de tránsito o, con su aseguradora. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita.
+        </Typography>
+      </Paper>
+
       {docError ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {docError}

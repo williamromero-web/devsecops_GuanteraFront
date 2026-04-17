@@ -1,3 +1,4 @@
+export * from "./brandWitnessService";
 export * from "./documentUpload";
 export * from "./soatService";
 export * from "./vehicleService";

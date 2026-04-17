@@ -10,7 +10,7 @@ export function useRoadTax(plate: string) {
   useEffect(() => {
     getRoadTax(plate)
       .then((res) => {
-        setRoadTax(res.data.roadTax);
+        setRoadTax(res.data.cityPaymentInfo);
         setDocument(res.data.document);
       })
       .catch((err) => setError(err.message))

@@ -19,7 +19,7 @@ export interface RoadTaxDocument {
 export interface RoadTaxResponse {
   success: boolean;
   data: {
-    roadTax: RoadTax;
+    cityPaymentInfo: RoadTax;
     document: RoadTaxDocument;
   };
 }

@@ -11,6 +11,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InfoIcon from "@mui/icons-material/Info";
 // import EditIcon from "@mui/icons-material/Edit";
 // import SaveIcon from "@mui/icons-material/Save";
 // import CancelIcon from "@mui/icons-material/Cancel";
@@ -38,10 +39,10 @@ export function RevisionTecnicoMecanica({
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
-  // const surfaceAlt =
-  //   (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
-  //   theme.palette.background.paper ??
-  //   theme.palette.background.default;
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
   // const [isEditing, setIsEditing] = useState(false);
@@ -191,6 +192,36 @@ export function RevisionTecnicoMecanica({
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia, 
+          consulte directamente con las entidades oficiales de tránsito o directamente 
+          con el Centro de Diagnóstico Automotor (CDA) donde se realizó la RTM (Revisión Técnico Mecánica).
+        </Typography>
+      </Paper>
+
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -218,7 +249,7 @@ export function RevisionTecnicoMecanica({
               fontWeight: 700,
               color:
                 statusType === "OK"
-                  ? theme.palette.primary.light
+                  ? (theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark)
                   : statusType === "PRÓXIMO A VENCER"
                     ? theme.palette.warning.main
                     : statusType === "VENCIDO"
@@ -276,14 +307,14 @@ export function RevisionTecnicoMecanica({
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -359,14 +390,14 @@ export function RevisionTecnicoMecanica({
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -453,7 +484,7 @@ export function RevisionTecnicoMecanica({
           onClick={isEditing ? handleSave : () => setIsEditing(true)}
           sx={{
             bgcolor: theme.palette.primary.light,
-            color: "#000",
+            color: theme.palette.text.primaryButton,
             fontWeight: 600,
             textTransform: "none",
             px: 3,

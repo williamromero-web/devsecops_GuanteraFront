@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   // Button,
+  Chip,
   Grid,
   Paper,
   TextField,
@@ -10,6 +11,10 @@ import {
 import { useTheme } from "@mui/material/styles";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InfoIcon from "@mui/icons-material/Info";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
 // import EditIcon from "@mui/icons-material/Edit";
 // import SaveIcon from "@mui/icons-material/Save";
 // import CancelIcon from "@mui/icons-material/Cancel";
@@ -18,6 +23,7 @@ import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUplo
 import { formatToDD_MM_YYYY } from "../../services/documentUpload";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
 import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
+import { computeExpiryStatus } from "../../lib/expiryStatus";
 
 export interface SoatProps {
   plate: string;
@@ -30,10 +36,10 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
-  // const surfaceAlt =
-  //   (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
-  //   theme.palette.background.paper ??
-  //   theme.palette.background.default;
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [documentsExpanded, setDocumentsExpanded] = useState(true);
   // const [isEditing, setIsEditing] = useState(false);
@@ -87,7 +93,30 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
     }
   }
 
+  const statusType = computeExpiryStatus(vehicleDocument?.expiredDate);
+
   const getStatusInfo = () => {
+    if (statusType === "OK") {
+      return {
+        title: "SOAT VIGENTE",
+        message: "El SOAT correspondiente al vehículo seleccionado se encuentra VIGENTE a la fecha. A continuación se detalla la información:",
+        chip: { label: "VIGENTE", icon: CheckCircleIcon, color: "success" },
+      };
+    }
+    if (statusType === "PRÓXIMO A VENCER") {
+      return {
+        title: "SOAT PRÓXIMO A VENCER",
+        message: "El SOAT correspondiente al vehículo seleccionado está PRÓXIMO A VENCER. Se recomienda realizar la renovación antes de la fecha de vencimiento.",
+        chip: { label: "PRÓXIMO A VENCER", icon: WarningIcon, color: "warning" },
+      };
+    }
+    if (statusType === "VENCIDO") {
+      return {
+        title: "SOAT VENCIDO",
+        message: "El SOAT correspondiente al vehículo seleccionado está VENCIDO. Es necesario realizar la renovación de manera inmediata.",
+        chip: { label: "VENCIDO", icon: ErrorIcon, color: "error" },
+      };
+    }
     return {
       title: "SOAT",
       message: "A continuación se muestra la información de la póliza:",
@@ -96,6 +125,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
   };
 
   const statusInfo = getStatusInfo();
+  const StatusIcon = statusInfo.chip?.icon;
 
   // const handleCancel = () => {
   //   setIsEditing(false);
@@ -115,6 +145,36 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia,
+          consulte directamente con quien los expide, las entidades oficiales de tránsito o, con su aseguradora. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita.
+        </Typography>
+      </Paper>
+
       {policyError || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {policyError || error}
@@ -140,7 +200,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             sx={{
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: theme.palette.primary.light,
+              color:
+                statusType === "OK"
+                  ? (theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark)
+                  : statusType === "PRÓXIMO A VENCER"
+                    ? theme.palette.warning.main
+                    : statusType === "VENCIDO"
+                      ? theme.palette.error.main
+                      : theme.palette.text.secondary,
               mb: 1,
             }}
           >
@@ -155,6 +222,19 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
           >
             {statusInfo.message}
           </Typography>
+          {statusInfo.chip && StatusIcon && (
+            <Chip
+              icon={<StatusIcon />}
+              label={statusInfo.chip.label}
+              color={statusInfo.chip.color as "success" | "warning" | "error"}
+              sx={{
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                height: 32,
+                borderRadius: "16px",
+              }}
+            />
+          )}
         </Box>
 
         <Box
@@ -180,14 +260,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -297,14 +377,14 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -382,7 +462,7 @@ export function Soat({ plate, vehicleId: vehicleIdProp }: Readonly<SoatProps>) {
           onClick={isEditing ? handleSave : () => setIsEditing(true)}
           sx={{
             bgcolor: theme.palette.primary.light,
-            color: "#000",
+            color: theme.palette.text.primaryButton,
             fontWeight: 600,
             textTransform: "none",
             px: 3,

@@ -84,12 +84,8 @@ export function VehicleCard({
     theme.palette.divider ??
     "#D0D0D0";
 
-  const isDark = theme.palette?.mode === "dark";
-  const cardBg =
-    isDark
-      ? "#000000"
-      : (theme.palette.background?.paper ?? theme.palette.background?.default ?? "#ffffff");
-  const cardTextColor = isDark ? "#ffffff" : (theme.palette.text?.primary ?? "#000000");
+  const cardBg = theme.palette.background.paper;
+  const cardTextColor = theme.palette.text.primary;
 
   return (
     <Grid size={{ xs: 12, md: 4 }}>

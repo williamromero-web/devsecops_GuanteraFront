@@ -1,4 +1,5 @@
-import { Alert } from "@mui/material";
+import { Alert, Paper, Typography, useTheme } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import { useEffect, useMemo, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 import { getDocumentTypeByCode } from "../../services";
@@ -14,6 +15,16 @@ export function ManualVehiculo({ plate, vehicleId }: Readonly<ManualVehiculoProp
   const [message, setMessage] = useState<string | null>(null);
   const [documentTypeId, setDocumentTypeId] = useState("");
   const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
+
+  const theme = useTheme();
+  const borderColor =
+    (theme.palette as { border?: { main?: string } })?.border?.main ??
+    theme.palette.divider ??
+    "#D0D0D0";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
 
   useEffect(() => {
     let ignore = false;
@@ -56,6 +67,37 @@ export function ManualVehiculo({ plate, vehicleId }: Readonly<ManualVehiculoProp
 
   return (
     <>
+
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          La digitalización de estos documentos es únicamente para fines informativos y no sustituye los documentos originales. 
+          En caso de dudas o novedades, se deberá remitir a la documentación física oficial emitida 
+          por el fabricante o la entidad correspondiente.
+        </Typography>
+      </Paper>
+      
       {message ? (
         <Alert severity="success" sx={{ mb: 2 }}>
           {message}

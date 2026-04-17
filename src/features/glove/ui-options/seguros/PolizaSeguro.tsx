@@ -18,8 +18,10 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
 import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
+import { DateField } from "../../../../shared/ui/atoms";
 import { useInsurancePolicy } from "../../hooks/useInsurancePolicy";
 import { useInsurers } from "../../hooks/useInsurers";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
@@ -195,6 +197,35 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial. Si encuentra alguna inconsistencia,
+          consulte directamente con quien los expide, las entidades oficiales de tránsito o, con su aseguradora. 
+          Esta plataforma, únicamente las visibiliza, NO es responsable de lo que la fuente de información emita.
+        </Typography>
+      </Paper>
       {policyError || error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {policyError || error}
@@ -219,7 +250,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             sx={{
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: theme.palette.primary.light,
+              color:
+                statusType === "OK"
+                  ? (theme.palette.mode === "dark" ? theme.palette.primary.light : theme.palette.primary.dark)
+                  : statusType === "PRÓXIMO A VENCER"
+                    ? theme.palette.warning.main
+                    : statusType === "VENCIDO"
+                      ? theme.palette.error.main
+                      : theme.palette.text.secondary,
               mb: 1,
             }}
           >
@@ -272,14 +310,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -340,22 +378,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
               </TextField>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <DateField
                 fullWidth
                 label="Fecha de vigencia"
-                type="date"
                 value={fechaVigencia}
                 onChange={(e) => setFechaVigencia(e.target.value)}
                 disabled={!isEditing}
                 variant="outlined"
                 size="small"
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -414,15 +444,16 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                   }
                   onClick={isEditing ? handleSave : () => setIsEditing(true)}
                   sx={{
-                    bgcolor: theme.palette.primary.light,
-                    color: "#000",
+                    bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+                    color: "#FFFFFF",
                     fontWeight: 600,
                     textTransform: "none",
                     px: 3,
                     py: 1.5,
                     borderRadius: 2,
                     "&:hover": {
-                      bgcolor: theme.palette.primary.main,
+                      bgcolor: theme.palette.primary.light,
+                      color: "#181818",
                     },
                     "&:disabled": {
                       bgcolor: theme.palette.action.disabledBackground,
@@ -477,14 +508,14 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}

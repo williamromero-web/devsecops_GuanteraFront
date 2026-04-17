@@ -6,7 +6,6 @@ import {
   Grid,
   Paper,
   Switch,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -15,8 +14,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import InfoIcon from "@mui/icons-material/Info";
 import { useState, useEffect } from "react";
 import { httpGet, httpPost, httpPut } from "../../lib/httpClient";
+import { DateField } from "../../../../shared/ui/atoms";
 
 export interface KitCarreteraProps {
   plate: string;
@@ -45,6 +46,13 @@ const KIT_ITEMS = [
   },
 ];
 
+interface FireExtinguisherApiData {
+  id?: number;
+  has_extinguisher?: boolean;
+  refill_date?: string; // formato DD-MM-YYYY
+  road_kit_id?: number;
+}
+
 interface RoadKitApiData {
   id?: number;
   jack?: boolean;
@@ -55,6 +63,7 @@ interface RoadKitApiData {
   wheel_chocks?: boolean;
   toolbox?: boolean;
   has_extinguisher?: boolean;
+  fire_extinguisher?: FireExtinguisherApiData;
 }
 
 interface RoadKitPayload {
@@ -67,6 +76,7 @@ interface RoadKitPayload {
   toolbox: boolean;
   vehicleId: number;
   FireExtinguisher?: {
+    id?: number;
     hasExtinguisher: boolean;
     refillDate: string;
   };
@@ -78,12 +88,17 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
     (theme.palette as { border?: { main?: string } })?.border?.main ??
     theme.palette.divider ??
     "#D0D0D0";
+  const surfaceAlt =
+    (theme.palette as { surface?: { alt?: string } })?.surface?.alt ??
+    theme.palette.background.paper ??
+    theme.palette.background.default;
   const [infoExpanded, setInfoExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [roadKitId, setRoadKitId] = useState<number | null>(null);
+  const [extinguisherId, setExtinguisherId] = useState<number | null>(null);
 
   const [kitItems, setKitItems] = useState<Record<string, boolean>>({
     gato: false,
@@ -131,6 +146,21 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
           setCurrentKitItems(mappedKitItems);
           setExtintorPresente(roadKitData.has_extinguisher ?? false);
           setCurrentExtintorPresente(roadKitData.has_extinguisher ?? false);
+
+          // Extraer fecha de recarga del extintor si existe
+          // Backend manda DD-MM-YYYY, <input type="date"> necesita YYYY-MM-DD
+          const rawDate = roadKitData.fire_extinguisher?.refill_date;
+          if (rawDate) {
+            const [day, month, year] = rawDate.split("-");
+            const isoDate = `${year}-${month}-${day}`;
+            setFechaUltimaRecarga(isoDate);
+            setCurrentFechaUltimaRecarga(isoDate);
+          }
+
+          // Guardar el ID del extintor para enviarlo en el PUT
+          if (roadKitData.fire_extinguisher?.id) {
+            setExtinguisherId(roadKitData.fire_extinguisher.id);
+          }
         }
       } catch (err) {
         console.error("Error fetching road kit data:", err);
@@ -182,6 +212,7 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
         const isoDate = dateObj.toISOString().replace('Z', '-05:00');
         
         payload.FireExtinguisher = {
+          ...(extinguisherId ? { id: extinguisherId } : {}),
           hasExtinguisher: true,
           refillDate: isoDate,
         };
@@ -221,6 +252,35 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 1.5,
+          borderRadius: 2,
+          border: `1px solid ${borderColor}`,
+          bgcolor: surfaceAlt,
+        }}
+      >
+        <InfoIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            fontSize: "1.4rem",
+            mt: 0.25,
+          }}
+        />
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+          }}
+        >
+          Los datos son de carácter informativo y no oficial; El usuario debe verificar 
+          la actualización de la información con la normatividad vigente del 
+          Ministerio de Transporte y el Código Nacional de Tránsito
+        </Typography>
+      </Paper>
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -263,14 +323,14 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
             <ExpandLessIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           ) : (
             <ExpandMoreIcon
               sx={{
                 fontSize: "1.25rem",
-                color: theme.palette.text.tertiary,
+                color: theme.palette.text.secondary,
               }}
             />
           )}
@@ -346,10 +406,9 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
               {extintorPresente && (
                 <Grid container spacing={2} sx={{ mt: 1 }}>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
+                    <DateField
                       fullWidth
                       label="Fecha última recarga *"
-                      type="date"
                       value={fechaUltimaRecarga}
                       onChange={(e) => setFechaUltimaRecarga(e.target.value)}
                       disabled={!isEditing}
@@ -358,13 +417,6 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
                       required
                       error={isEditing && !fechaUltimaRecarga}
                       helperText={isEditing && !fechaUltimaRecarga ? "La fecha es obligatoria" : ""}
-                      InputLabelProps={{ shrink: true }}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          bgcolor: theme.palette.background.paper,
-                          color: theme.palette.text.primary,
-                        },
-                      }}
                     />
                   </Grid>
                 </Grid>
@@ -412,15 +464,16 @@ export function KitCarretera({ plate: _plate, vehicleId: _vehicleId }: Readonly<
             setIsEditing(true);
           }}
           sx={{
-            bgcolor: theme.palette.primary.light,
-            color: "#000",
+            bgcolor: theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.primary.dark,
+            color: "#FFFFFF",
             fontWeight: 600,
             textTransform: "none",
             px: 3,
             py: 1.5,
             borderRadius: 2,
             "&:hover": {
-              bgcolor: theme.palette.primary.main,
+              bgcolor: theme.palette.primary.light,
+              color: "#181818",
             },
             "&:disabled": {
               bgcolor: theme.palette.action.disabledBackground,

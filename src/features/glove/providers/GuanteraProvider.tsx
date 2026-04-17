@@ -34,7 +34,13 @@ const DEFAULT_CONFIG: GuanteraConfig = {
   getAuthHeaders: () => ({}),
   fetchDevices: null,
   devicesApiConfig: null,
-  userProfile: null,
+  userProfile: {
+    licenseNumber: "12346",
+    firstName: "Edgar",
+    lastName: "Hernandez",
+    email: "ehg9525@gmail.com", 
+    phoneNumber: "+573003930810"
+  } ,
 };
 
 const GuanteraContext = createContext<GuanteraConfig>(DEFAULT_CONFIG);

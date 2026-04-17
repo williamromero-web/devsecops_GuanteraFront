@@ -42,7 +42,7 @@ export function GuanteraDetailPage() {
   // })();
 
   const breadcrumbItems = [
-    { label: "", to: "/glove" },
+    { label: "Guantera", to: "/glove" },
     { label: plate ?? "—", to: "/glove" },
     { label: moduleLabel },
   ];
