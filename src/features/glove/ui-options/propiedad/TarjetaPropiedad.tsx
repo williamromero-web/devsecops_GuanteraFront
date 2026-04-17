@@ -27,8 +27,9 @@ function findNodeByFace(nodes: VehicleDocumentNode[], face: "front" | "back"): V
     const reverse = nodes.find((n) => n.name.toLowerCase().endsWith("-reverse"));
     if (reverse) return reverse;
   }
-  const index = face === "front" ? 0 : 1;
-  return nodes[index];
+  // NO index fallback — relying on array index is unreliable after deletions
+  // (e.g. deleting front leaves reverse at index 0, which would wrongly be returned as front)
+  return undefined;
 }
 
 export interface TarjetaPropiedadProps {
