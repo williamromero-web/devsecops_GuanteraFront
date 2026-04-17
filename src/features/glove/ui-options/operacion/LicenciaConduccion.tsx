@@ -48,6 +48,28 @@ const TipoCategoria = {
 
 type TipoCategoria = (typeof TipoCategoria)[keyof typeof TipoCategoria];
 
+function findNodeByFace(nodes: VehicleDocumentNode[], face: "front" | "back"): VehicleDocumentNode | undefined {
+  // Strip extension and parenthetical suffixes before matching suffix
+  // e.g. "name-reverse.jpg" → "name-reverse", "name (1)-front.png" → "name-front"
+  const stripExtension = (name: string) => name.replace(/\.[^.]+$/, '');
+  const stripParens = (name: string) => name.replace(/\s*\(\d+\)/, '');
+
+  const found = nodes.find((n) => {
+    const base = stripExtension(stripParens(n.name.toLowerCase()));
+    return base.endsWith(`-${face}`);
+  });
+  if (found) return found;
+  // Fallback: if looking for "back" but no "-back" suffix, try "-reverse"
+  if (face === "back") {
+    const reverse = nodes.find((n) => {
+      const base = stripExtension(stripParens(n.name.toLowerCase()));
+      return base.endsWith('-reverse');
+    });
+    if (reverse) return reverse;
+  }
+  return undefined;
+}
+
 interface CategoriaLicencia {
   id: string | null;
   categoryType: TipoCategoria | "";
@@ -352,15 +374,15 @@ export function LicenciaConduccion({
   };
 
   const handleSaveFrontNode = async (file: File) => {
-    await handleSaveNode("Front", file, documentNodes[0]?.nodeId);
+    await handleSaveNode("Front", file, findNodeByFace(documentNodes, "front")?.nodeId);
   };
 
   const handleSaveBackNode = async (file: File) => {
-    await handleSaveNode("Reverse", file, documentNodes[1]?.nodeId);
+    await handleSaveNode("Reverse", file, findNodeByFace(documentNodes, "back")?.nodeId);
   };
 
   const handleDeleteFrontNode = async () => {
-    const nodeId = documentNodes[0]?.nodeId;
+    const nodeId = findNodeByFace(documentNodes, "front")?.nodeId;
     if (!nodeId) return;
 
     setNodeFiles((prev) => ({
@@ -377,7 +399,7 @@ export function LicenciaConduccion({
   };
 
   const handleDeleteBackNode = async () => {
-    const nodeId = documentNodes[1]?.nodeId;
+    const nodeId = findNodeByFace(documentNodes, "back")?.nodeId;
     if (!nodeId) return;
 
     setNodeFiles((prev) => ({
@@ -704,48 +726,54 @@ export function LicenciaConduccion({
                 <Grid size={{ xs: 12, sm: 6 }}>
 
                   {/* Front face */}
-                  {documentNodes[0] ? (
-                    <DocumentUploadCard
-                      key={documentNodes[0].nodeId}
-                      instruction={`Cara frontal — Adjunte aquí la cara frontal de la licencia de conducción.`}
-                      hasFile={nodeFiles[documentNodes[0].nodeId]?.hasFile ?? false}
-                      fileName={nodeFiles[documentNodes[0].nodeId]?.fileName ?? documentNodes[0].name}
-                      fileSizeLabel={nodeFiles[documentNodes[0].nodeId]?.fileSizeLabel}
-                      nodeId={nodeFiles[documentNodes[0].nodeId]?.hasFile ? documentNodes[0].nodeId : undefined}
-                      onDelete={handleDeleteFrontNode}
-                      onSave={handleSaveFrontNode}
-                    />
-                  ) : (
-                    <DocumentUploadCard
-                      instruction={`Cara frontal — Adjunte aquí la cara frontal de la licencia de conducción.`}
-                      hasFile={false}
-                      fileName="Sin archivo"
-                      onSave={handleSaveFrontNode}
-                    />
-                  )}
+                  {(() => {
+                    const frontNode = findNodeByFace(documentNodes, "front");
+                    return frontNode ? (
+                      <DocumentUploadCard
+                        key={frontNode.nodeId}
+                        instruction={`Cara frontal — Adjunte aquí la cara frontal de la licencia de conducción.`}
+                        hasFile={nodeFiles[frontNode.nodeId]?.hasFile ?? false}
+                        fileName={nodeFiles[frontNode.nodeId]?.fileName ?? frontNode.name}
+                        fileSizeLabel={nodeFiles[frontNode.nodeId]?.fileSizeLabel}
+                        nodeId={nodeFiles[frontNode.nodeId]?.hasFile ? frontNode.nodeId : undefined}
+                        onDelete={handleDeleteFrontNode}
+                        onSave={handleSaveFrontNode}
+                      />
+                    ) : (
+                      <DocumentUploadCard
+                        instruction={`Cara frontal — Adjunte aquí la cara frontal de la licencia de conducción.`}
+                        hasFile={false}
+                        fileName="Sin archivo"
+                        onSave={handleSaveFrontNode}
+                      />
+                    );
+                  })()}
                 </Grid>
-          
+
                 <Grid size={{ xs: 12, sm: 6 }}>
                   {/* Back face */}
-                  {documentNodes[1] ? (
-                    <DocumentUploadCard
-                      key={documentNodes[1].nodeId}
-                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}).`}
-                      hasFile={nodeFiles[documentNodes[1].nodeId]?.hasFile ?? false}
-                      fileName={nodeFiles[documentNodes[1].nodeId]?.fileName ?? documentNodes[1].name}
-                      fileSizeLabel={nodeFiles[documentNodes[1].nodeId]?.fileSizeLabel}
-                      nodeId={nodeFiles[documentNodes[1].nodeId]?.hasFile ? documentNodes[1].nodeId : undefined}
-                      onDelete={handleDeleteBackNode}
-                      onSave={handleSaveBackNode}
-                    />
-                  ) : (
-                    <DocumentUploadCard
-                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}, Vehículo: ${vehicleId}).`}
-                      hasFile={false}
-                      fileName="Sin archivo"
-                      onSave={handleSaveBackNode}
-                    />
-                  )}
+                  {(() => {
+                    const backNode = findNodeByFace(documentNodes, "back");
+                    return backNode ? (
+                      <DocumentUploadCard
+                        key={backNode.nodeId}
+                        instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}).`}
+                        hasFile={nodeFiles[backNode.nodeId]?.hasFile ?? false}
+                        fileName={nodeFiles[backNode.nodeId]?.fileName ?? backNode.name}
+                        fileSizeLabel={nodeFiles[backNode.nodeId]?.fileSizeLabel}
+                        nodeId={nodeFiles[backNode.nodeId]?.hasFile ? backNode.nodeId : undefined}
+                        onDelete={handleDeleteBackNode}
+                        onSave={handleSaveBackNode}
+                      />
+                    ) : (
+                      <DocumentUploadCard
+                        instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}, Vehículo: ${vehicleId}).`}
+                        hasFile={false}
+                        fileName="Sin archivo"
+                        onSave={handleSaveBackNode}
+                      />
+                    );
+                  })()}
                 </Grid>
               </Grid>
           </Box>
