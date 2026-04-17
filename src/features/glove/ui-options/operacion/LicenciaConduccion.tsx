@@ -74,6 +74,9 @@ export function LicenciaConduccion({
   plate,
   vehicleId,
 }: Readonly<LicenciaConduccionProps>) {
+  const p = plate
+  const v = vehicleId
+  
   const theme = useTheme();
 
   const borderColor =
@@ -730,7 +733,7 @@ export function LicenciaConduccion({
                   {documentNodes[1] ? (
                     <DocumentUploadCard
                       key={documentNodes[1].nodeId}
-                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}).`}
+                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción.`}
                       hasFile={nodeFiles[documentNodes[1].nodeId]?.hasFile ?? false}
                       fileName={nodeFiles[documentNodes[1].nodeId]?.fileName ?? documentNodes[1].name}
                       fileSizeLabel={nodeFiles[documentNodes[1].nodeId]?.fileSizeLabel}
@@ -740,7 +743,7 @@ export function LicenciaConduccion({
                     />
                   ) : (
                     <DocumentUploadCard
-                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción (Licencia: ${userProfile?.licenseNumber}, Placa: ${plate}, Vehículo: ${vehicleId}).`}
+                      instruction={`Cara trasera — Adjunte aquí la cara trasera de la licencia de conducción.`}
                       hasFile={false}
                       fileName="Sin archivo"
                       onSave={handleSaveBackNode}
