@@ -61,6 +61,19 @@ export interface DocumentUploadCardProps {
 	 * Recibe el archivo y, si el backend devolvió un collectionId nuevo, también lo recibe.
 	 */
 	onSave?: (file: File, collectionId?: string) => Promise<void> | void;
+	/**
+	 * Override the internal upload. When provided, this is called instead of uploadDocument.
+	 * Use this when the parent needs to call a specific upload function (e.g. uploadPolicyDocument)
+	 * or handle updates vs creates differently. Receives file and upload metadata.
+	 * Should return the collectionId if the backend returns one.
+	 */
+	onUpload?: (file: File, opts: {
+		documentTypeId?: string;
+		vehicleId?: string;
+		collectionId?: string;
+		nodeId?: string;
+		expiredDate?: string;
+	}) => Promise<string | undefined>;
 	saveLabel?: string;
 
 	updateLabel?: string;
@@ -91,6 +104,7 @@ export function DocumentUploadCard({
 	nodeId,
 	onDelete,
 	onSave,
+	onUpload,
 	saveLabel = 'Guardar',
 	updateLabel = 'Actualizar',
 	sx,
@@ -248,7 +262,16 @@ export function DocumentUploadCard({
 			setLocalError(null);
 
 			let returnedCollectionId: string | undefined;
-			if (documentTypeId && vehicleId) {
+			if (onUpload) {
+				// Parent controls upload — use custom handler (e.g. uploadPolicyDocument for insurance)
+				returnedCollectionId = await onUpload(selectedFile, {
+					documentTypeId,
+					vehicleId,
+					collectionId,
+					nodeId,
+					expiredDate: expiredDate ?? undefined,
+				});
+			} else if (documentTypeId && vehicleId) {
 				const result = await uploadDocument({
 					documentTypeId,
 					vehicleId,

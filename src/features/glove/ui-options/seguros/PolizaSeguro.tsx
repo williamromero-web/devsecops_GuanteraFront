@@ -26,6 +26,7 @@ import { useInsurancePolicy } from "../../hooks/useInsurancePolicy";
 import { useInsurers } from "../../hooks/useInsurers";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
 import { uploadPolicyDocument } from "../../services";
+import { httpDelete } from "../../lib/httpClient";
 
 export interface PolizaSeguroProps {
   plate: string;
@@ -68,6 +69,32 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
     } catch {
       setDocumentNodes([]);
     }
+  };
+
+  // Handles upload with proper update semantics: delete old node before uploading new one.
+  // This prevents the backend from creating duplicate nodes when replacing a file.
+  const handleUpload = async (
+    file: File,
+    opts: { documentTypeId?: string; vehicleId?: string; collectionId?: string; nodeId?: string; expiredDate?: string },
+  ): Promise<string | undefined> => {
+    const { nodeId, collectionId: collId, expiredDate: expDate } = opts;
+    const vehicleIdStr = vehicleIdProp !== undefined ? String(vehicleIdProp) : undefined;
+
+    // If updating an existing node, delete it first to avoid duplicates
+    if (nodeId) {
+      await httpDelete(`/vehicledocument/nodes/${nodeId}`);
+    }
+
+    await uploadPolicyDocument({
+      documentTypeId: opts.documentTypeId ?? '4',
+      vehicleId: vehicleIdStr ?? '',
+      frontFile: file,
+      backFile: undefined,
+      expiredDate: expDate,
+      collectionId: collId,
+    });
+
+    return collId;
   };
 
   useEffect(() => {
@@ -536,6 +563,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                   nodeId={node.nodeId}
                   metadata={metadata}
                   onDelete={handleAfterChange}
+                  onUpload={handleUpload}
                   onSave={async (file, newCollectionId) => {
                     setMessage(`${file.name} guardado correctamente.`);
                     const idToUse = newCollectionId ?? collectionId ?? null;
@@ -553,6 +581,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                 documentTypeId="4"
                 collectionId={collectionId ?? undefined}
                 metadata={metadata}
+                onUpload={handleUpload}
                 onSave={async (file, newCollectionId) => {
                   setMessage(`${file.name} guardado correctamente.`);
                   const idToUse = newCollectionId ?? collectionId ?? null;
