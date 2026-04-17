@@ -20,15 +20,24 @@ import { getPropertyCard, getVehicleDocumentNodes, updatePropertyCardNumber, typ
 import { getDocumentTypeByCode, uploadPropertyCardDocuments } from "../../services";
 
 function findNodeByFace(nodes: VehicleDocumentNode[], face: "front" | "back"): VehicleDocumentNode | undefined {
-  const found = nodes.find((n) => n.name.toLowerCase().endsWith(`-${face}`));
+  // Strip extension before checking suffix (e.g. "name-reverse.jpg" → "name-reverse")
+  const stripExtension = (name: string) => name.replace(/\.[^.]+$/, '');
+  const stripParens = (name: string) => name.replace(/\s*\(\d+\)/, '');
+
+  const found = nodes.find((n) => {
+    const base = stripExtension(stripParens(n.name.toLowerCase()));
+    return base.endsWith(`-${face}`);
+  });
   if (found) return found;
   // Fallback: if looking for "back" but no "-back" suffix, try "-reverse"
   if (face === "back") {
-    const reverse = nodes.find((n) => n.name.toLowerCase().endsWith("-reverse"));
+    const reverse = nodes.find((n) => {
+      const base = stripExtension(stripParens(n.name.toLowerCase()));
+      return base.endsWith('-reverse');
+    });
     if (reverse) return reverse;
   }
-  const index = face === "front" ? 0 : 1;
-  return nodes[index];
+  return undefined;
 }
 
 export interface TarjetaPropiedadProps {
@@ -146,16 +155,13 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
 
   const handleSaveFrontNode = async (file: File) => {
     const frontNode = findNodeByFace(documentNodes, "front");
-    if (!frontNode) {
-      console.error("handleSaveFrontNode: front node not found");
-      setError("No se encontró el nodo frontal del documento.");
-      return;
-    }
     setFrontFile(file);
-    setNodeFiles((prev) => ({
-      ...prev,
-      [frontNode.nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` },
-    }));
+    if (frontNode) {
+      setNodeFiles((prev) => ({
+        ...prev,
+        [frontNode.nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` },
+      }));
+    }
     setFileChanged(true);
     try {
       console.log("document type tc: ", documentTypeId);
@@ -170,16 +176,13 @@ export function TarjetaPropiedad({ vehicleId, plate }: Readonly<TarjetaPropiedad
 
   const handleSaveBackNode = async (file: File) => {
     const backNode = findNodeByFace(documentNodes, "back");
-    if (!backNode) {
-      console.error("handleSaveBackNode: back node not found");
-      setError("No se encontró el nodo trasero del documento.");
-      return;
-    }
     setBackFile(file);
-    setNodeFiles((prev) => ({
-      ...prev,
-      [backNode.nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` },
-    }));
+    if (backNode) {
+      setNodeFiles((prev) => ({
+        ...prev,
+        [backNode.nodeId]: { hasFile: true, fileName: file.name, fileSizeLabel: `${(file.size / 1024).toFixed(1)} KB` },
+      }));
+    }
     setFileChanged(true);
     try {
       await uploadPropertyCardDocuments({ documentTypeId, vehicleId: String(vehicleId), backFile: file, collectionId: documentCollectionId ?? undefined });
