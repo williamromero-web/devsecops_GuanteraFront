@@ -74,9 +74,6 @@ export function LicenciaConduccion({
   plate,
   vehicleId,
 }: Readonly<LicenciaConduccionProps>) {
-  const p = plate
-  const v = vehicleId
-  
   const theme = useTheme();
 
   const borderColor =
@@ -329,7 +326,7 @@ export function LicenciaConduccion({
 
       setMessage("Archivo cargado correctamente");
     } catch (err) {
-      console.error("Error uploading file:", err);
+      console.error(`Error uploading file Placa: ${plate}, Vehículo: ${vehicleId}):`, err);
       setError("Error al cargar el archivo");
     }
   };
