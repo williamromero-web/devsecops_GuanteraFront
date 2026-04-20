@@ -210,7 +210,7 @@ export function LicenciaConduccion({
           .filter(cat => cat.categoryType && cat.expiredDate)
           .map(cat => ({
             // temp-* IDs are new categories → send null so backend creates them
-            ID: cat.id?.startsWith("temp-") ? null : cat.id,
+            ID: typeof cat.id === "string" && cat.id.startsWith("temp-") ? null : cat.id,
             name: cat.categoryType,
             expiredDate: cat.expiredDate,
           })),
@@ -255,10 +255,11 @@ export function LicenciaConduccion({
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
 
-    const isTempId = deleteId?.startsWith("temp-") ?? false;
-
     try {
       setConfirmDeleteOpen(false);
+
+      // typeof guard: la API puede devolver IDs numéricos aunque TS los tipee como string
+      const isTempId = typeof deleteId === "string" && deleteId.startsWith("temp-");
 
       // Only call backend delete if it's not a temp (not-yet-saved) category
       if (!isTempId) {
