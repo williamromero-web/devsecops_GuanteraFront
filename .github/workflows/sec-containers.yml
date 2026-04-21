@@ -1,0 +1,88 @@
+name: Sec - Containers (Reportes HTML)
+on:
+  push: {branches: [main, develop]}
+  pull_request: {branches: [main]}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  container-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Ejecutar Hadolint y exportar a JSON
+      - name: Escaneo de Dockerfile (Hadolint JSON)
+        run: |
+          docker run --rm -i hadolint/hadolint hadolint --format json - < Dockerfile > hadolint.json || true
+        continue-on-error: true
+
+      # 2. Convertir el JSON de Hadolint a HTML
+      - name: Generar HTML de Hadolint
+        run: |
+          python3 -c "
+          import json
+          try:
+              with open('hadolint.json', 'r') as f:
+                  data = json.load(f)
+          except Exception:
+              data = []
+          html = '''<html><head><title>Reporte Hadolint</title>
+          <style>
+            body { font-family: sans-serif; background: #f4f7f9; padding: 20px; }
+            h1 { color: #2c3e50; }
+            .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #f39c12; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .level-error { color: #e74c3c; font-weight: bold; }
+            .level-warning { color: #f39c12; font-weight: bold; }
+            .level-info { color: #3498db; font-weight: bold; }
+          </style></head>
+          <body><h1>Reporte de Hadolint (Buenas prácticas en Dockerfile)</h1>'''
+          if not data:
+              html += '<p>Excelente! No se encontraron problemas en el Dockerfile.</p>'
+          else:
+              html += f'<p>Hallazgos: <strong>{len(data)}</strong></p>'
+              for item in data:
+                  lvl = item.get('level', 'info').lower()
+                  css_class = f'level-{lvl}' if lvl in ['error', 'warning'] else 'level-info'
+                  html += f'''<div class='card'>
+                  <p><span class='{css_class}'>{item.get('level').upper()}</span> - Línea {item.get('line')}</p>
+                  <p><strong>Regla {item.get('code')}:</strong> {item.get('message')}</p>
+                  </div>'''
+          html += '</body></html>'
+          with open('reporte-hadolint.html', 'w') as f:
+              f.write(html)
+          "
+        continue-on-error: true
+
+      # 3. Construir la imagen de Docker para Trivy
+      - name: Construir Imagen Docker de Prueba
+        run: |
+          docker build -t miapp-local:latest .
+        continue-on-error: true
+
+      # 4. Descargar la plantilla HTML oficial de Trivy
+      - name: Descargar plantilla de Trivy
+        run: |
+          curl -sL -o trivy-html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+      # 5. Escaneo de Trivy exportando a HTML
+      - name: Escaneo de Imagen (Trivy HTML)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'miapp-local:latest'
+          format: 'template'
+          template: '@trivy-html.tpl'
+          output: 'reporte-trivy-imagen.html'
+          severity: 'HIGH,CRITICAL'
+          scanners: 'vuln,secret,misconfig'
+          exit-code: '0'
+        continue-on-error: true
+
+      # 6. Empaquetar y subir los reportes web
+      - name: Subir Reportes HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-contenedores-html
+          path: |
+            reporte-hadolint.html
+            reporte-trivy-imagen.html
