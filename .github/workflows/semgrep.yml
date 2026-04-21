@@ -1,0 +1,119 @@
+name: Semgrep Security & Compliance Suite
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  semgrep_compliance_scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python3 -m pip install semgrep
+          sudo apt-get update && sudo apt-get install -y wkhtmltopdf
+
+      # Análisis de seguridad con exclusiones estratégicas
+      - name: Run Semgrep Scan
+        run: |
+          # Definimos las carpetas a ignorar para no ensuciar el reporte
+          EXCLUSIONS="--exclude='node_modules/*' --exclude='test/*' --exclude='tests/*' --exclude='venv/*' --exclude='dist/*' --exclude='build/*'"
+          
+          semgrep scan \
+            $EXCLUSIONS \
+            --config auto \
+            --config "p/default" \
+            --json --output semgrep-compliance.json || true
+          
+          semgrep scan \
+            $EXCLUSIONS \
+            --config auto \
+            --config "p/default" \
+            --sarif --output semgrep-compliance.sarif || true
+
+      # Generador de reporte PDF
+      - name: Generate Professional PDF
+        run: |
+          cat << 'EOF' > convert_report.py
+          import json
+          import os
+
+          if os.path.exists('semgrep-compliance.json'):
+              with open('semgrep-compliance.json', encoding='utf-8') as f:
+                  data = json.load(f)
+              
+              results = data.get('results', [])
+              
+              html_content = f"""
+              <html>
+              <head>
+                  <meta charset="UTF-8">
+                  <style>
+                      body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 40px; line-height: 1.6; }}
+                      .header {{ border-bottom: 3px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px; }}
+                      .summary {{ background: #f4f7f6; padding: 20px; border-left: 5px solid #2980b9; border-radius: 4px; margin: 20px 0; }}
+                      table {{ width: 100%; border-collapse: collapse; table-layout: fixed; }}
+                      th {{ background-color: #2c3e50; color: white; padding: 12px; text-align: left; font-size: 13px; }}
+                      td {{ border-bottom: 1px solid #eee; padding: 12px; font-size: 11px; vertical-align: top; word-wrap: break-word; }}
+                      .severity-error {{ color: #c0392b; font-weight: bold; background: #fdf2f2; }}
+                      .severity-warning {{ color: #d35400; font-weight: bold; background: #fffaf0; }}
+                      .badge {{ padding: 2px 6px; border-radius: 3px; text-transform: uppercase; font-size: 10px; }}
+                  </style>
+              </head>
+              <body>
+                  <div class="header"><h1>🛡️ Reporte DevSecOps: Semgrep Analysis</h1></div>
+                  <div class="summary">
+                      <p><strong>Hallazgos detectados:</strong> {len(results)}</p>
+                      <p><strong>Estado de Seguridad:</strong> <span style="color: {'#c0392b' if len(results) > 0 else '#27ae60'}">{'⚠️ ACCIÓN REQUERIDA' if len(results) > 0 else '✅ REPOSITORIO SEGURO'}</span></p>
+                  </div>
+                  <table>
+                      <thead>
+                          <tr>
+                              <th style="width: 20%;">Regla</th>
+                              <th style="width: 25%;">Localización</th>
+                              <th style="width: 15%;">Severidad</th>
+                              <th style="width: 40%;">Descripción</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+              """
+              
+              for r in results:
+                  sev = r['extra'].get('severity', 'info').lower()
+                  msg = r['extra'].get('message', 'Sin descripción disponible')[:300]
+                  html_content += f"""
+                      <tr>
+                          <td><strong>{r['check_id'].split('.')[-1]}</strong></td>
+                          <td>{r['path']}<br><small>Línea: {r['start']['line']}</small></td>
+                          <td class="severity-{sev}"><span class="badge">{sev.upper()}</span></td>
+                          <td>{msg}</td>
+                      </tr>
+                  """
+              
+              html_content += "</tbody></table></body></html>"
+              with open('semgrep-report.html', 'w', encoding='utf-8') as f:
+                  f.write(html_content)
+          EOF
+          python3 convert_report.py
+          wkhtmltopdf --encoding utf-8 --quiet semgrep-report.html semgrep-compliance-report.pdf
+        if: always()
+
+      - name: Archive Security Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-audit-results
+          path: |
+            semgrep-compliance-report.pdf
+            semgrep-compliance.json
+            semgrep-compliance.sarif
