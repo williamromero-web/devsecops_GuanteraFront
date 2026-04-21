@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { DocumentUploadCard } from "../../../../shared/ui/molecules/DocumentUploadCard";
 import { getRTM } from "../../services/rtmService";
 import { getVehicleDocumentNodes, type VehicleDocumentNode } from "../../services/propertyCardService";
-import { getDocumentTypeByCode } from "../../services";
+import { formatToDD_MM_YYYY, getDocumentTypeByCode } from "../../services";
 import { useVehicleDocumentInfo } from "../../hooks/useVehicleDocumentInfo";
 
 export interface RevisionTecnicoMecanicaProps {
@@ -77,9 +77,29 @@ export function RevisionTecnicoMecanica({
 
         const data = response.data;
 
-        setFechaUltimaRevision(data.rtm.lastReviewDate);
-        setFechaVencimiento(data.rtm.expiredDate);
+        let startDate = "NO REPORTADO";
+        if (data.rtm?.lastReviewDate) {
+          const formatted = formatToDD_MM_YYYY(data.rtm.lastReviewDate);
+          if (formatted) {
+            startDate = formatted;
+          }
+        }
+
+        let expiredDate = "NO REPORTADO";
+        if (data.rtm?.expiredDate) {
+          const formatted = formatToDD_MM_YYYY(data.rtm.expiredDate);
+          if (formatted) {
+            expiredDate = formatted;
+          }
+        }
+
+        setFechaUltimaRevision(startDate);
+        setFechaVencimiento(expiredDate);
         setStatusType(mapStatus(data.document.status));
+
+        console.log("data ", {data});
+        console.log("fecha vencimiento expiredDate ", data.rtm.expiredDate);
+        console.log("sey fecha vencimiento ", fechaVencimiento);
 
       } catch (err) {
         console.error(err);

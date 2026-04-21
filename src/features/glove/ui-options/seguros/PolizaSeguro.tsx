@@ -61,6 +61,7 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
   const [documentNodes, setDocumentNodes] = useState<VehicleDocumentNode[]>([]);
 
   const collectionId: string | null = document?.documentCollectionId ?? null;
+  const documentExpiryDate = document?.expiredDate ?? document?.endDate ?? "";
 
   const loadNodes = async (id: string) => {
     try {
@@ -103,7 +104,9 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
     fetchNodes();
   }, [collectionId]);
 
-  const fillInsurerContact = (insurerId: number) => {
+  const fillInsurerContact = (insurerId?: number) => {
+    if (typeof insurerId !== "number") return;
+
     const insurer = insurers.find(i => i.id === insurerId);
     if (insurer) {
       setContactoAsistencia(insurer.contactNumber);
@@ -111,15 +114,17 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
   };
 
   useEffect(() => {
-    if (!policy || insurers.length === 0) return;
+    if (!policy) return;
 
     setNumeroPoliza(policy.number ?? "");
     setAseguradora(policy.insurerId?.toString() ?? "");
+    setContactoAsistencia(policy.assistanceNumber ?? policy.insurerCellPhone ?? "");
+    setFechaVigencia(documentExpiryDate);
 
-    fillInsurerContact(policy.insurerId);
-
-    setFechaVigencia(document.endDate ?? "");
-  }, [policy, document]);
+    if (insurers.length > 0) {
+      fillInsurerContact(policy.insurerId);
+    }
+  }, [policy, documentExpiryDate, insurers]);
 
   const getStatusType = () => {
     switch (document?.color) {
@@ -181,8 +186,8 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
     setIsEditing(false);
     setNumeroPoliza(policy?.number ?? "");
     setAseguradora(policy?.insurerId?.toString() ?? "");
-    setFechaVigencia(document?.endDate ?? "");
-    setContactoAsistencia(policy?.assistanceNumber ?? "");
+    setFechaVigencia(documentExpiryDate);
+    setContactoAsistencia(policy?.assistanceNumber ?? policy?.insurerCellPhone ?? "");
     setError(null);
     setMessage(null);
   };
@@ -463,8 +468,8 @@ export function PolizaSeguro({ plate, vehicleId: vehicleIdProp }: Readonly<Poliz
                     isEditing &&
                     (saving ||
                       (numeroPoliza.trim() === (policy?.number ?? "").trim() &&
-                      aseguradora.trim() === (policy?.insurerName ?? "").trim() &&
-                      fechaVigencia === (document?.endDate ?? "") &&
+                      aseguradora.trim() === (policy?.insurerId?.toString() ?? "").trim() &&
+                      fechaVigencia === documentExpiryDate &&
                       contactoAsistencia.trim() === (policy?.assistanceNumber ?? "").trim() //&&
                     ))
                       // !hasFile))
