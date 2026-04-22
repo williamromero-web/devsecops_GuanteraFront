@@ -131,24 +131,42 @@ class SonarQubeReportGenerator:
             return None
 
     def fetch_data(self):
-        """Obtener datos reales desde el servidor de SonarQube"""
-        print(f"📡 Conectando a SonarQube en {self.sonar_url}...")
-        
-        metrics_keys = "alert_status,bugs,vulnerabilities,security_hotspots,code_smells,sqale_index"
-        metrics_ep = f"/api/measures/component?component={self.project_key}&metricKeys={metrics_keys}"
-        m_data = self._make_api_request(metrics_ep)
-        
-        if m_data and 'component' in m_data:
-            for measure in m_data['component'].get('measures', []):
-                self.metrics[measure['metric']] = measure.get('value', '0')
-
-        issues_ep = f"/api/issues/search?componentKeys={self.project_key}&resolved=false&ps=50&s=SEVERITY&asc=false"
-        i_data = self._make_api_request(issues_ep)
-        
-        if i_data:
-            self.issues = i_data.get('issues', [])
+            """Obtener datos reales desde el servidor de SonarQube con paginación ilimitada"""
+            print(f"📡 Conectando a SonarQube en {self.sonar_url}...")
             
-        print(f"✓ Datos recuperados: {len(self.issues)} problemas detectados")
+            # 1. Obtener Métricas Generales (Bugs, Deuda, Quality Gate)
+            metrics_keys = "alert_status,bugs,vulnerabilities,security_hotspots,code_smells,sqale_index"
+            metrics_ep = f"/api/measures/component?component={self.project_key}&metricKeys={metrics_keys}"
+            m_data = self._make_api_request(metrics_ep)
+            
+            if m_data and 'component' in m_data:
+                for measure in m_data['component'].get('measures', []):
+                    self.metrics[measure['metric']] = measure.get('value', '0')
+
+            # 2. Descargar ALL Issues (Usando paginación para no romper el límite de Sonar)
+            print("📥 Descargando todos los hallazgos (issues)...")
+            self.issues = []
+            page_index = 1
+            page_size = 500  # Máximo permitido por SonarQube por página
+            
+            while True:
+                # Construimos la URL con la página actual
+                issues_ep = f"/api/issues/search?componentKeys={self.project_key}&resolved=false&ps={page_size}&p={page_index}&s=SEVERITY&asc=false"
+                i_data = self._make_api_request(issues_ep)
+                
+                if not i_data or 'issues' not in i_data:
+                    break # Si hay error de red o no hay respuesta, salimos
+                    
+                batch_issues = i_data['issues']
+                self.issues.extend(batch_issues)
+                
+                # Si SonarQube nos devolvió menos de 500 issues, significa que ya llegamos al final
+                if len(batch_issues) < page_size:
+                    break
+                    
+                page_index += 1 # Pasamos a la siguiente página
+                
+            print(f"✓ Datos recuperados: {len(self.issues)} problemas detectados en total")
 
     def create_executive_summary(self):
         """Crear resumen ejecutivo"""

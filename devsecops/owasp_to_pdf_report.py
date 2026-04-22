@@ -300,7 +300,7 @@ class OWASPReportGenerator:
         elements.append(Paragraph(f"VULNERABILIDADES {severity} ({len(vulns)})", self.styles['CustomHeading2']))
         elements.append(Spacer(1, 0.2*inch))
         
-        for idx, vuln in enumerate(vulns[:30], 1):
+        for idx, vuln in enumerate(vulns, 1):
             if idx > 1: elements.append(Spacer(1, 0.15*inch))
             
             cvss = self._get_vuln_cvss(vuln)
@@ -320,11 +320,6 @@ class OWASPReportGenerator:
             
             elements.append(Paragraph(details, self.styles['BodyText']))
         
-        if len(vulns) > 30:
-            elements.append(Spacer(1, 0.2*inch))
-            remaining = len(vulns) - 30
-            elements.append(Paragraph(f"<i>... y {remaining} vulnerabilidades más en el reporte JSON</i>", self.styles['Normal']))
-            
         return elements
 
     def create_findings_section(self):

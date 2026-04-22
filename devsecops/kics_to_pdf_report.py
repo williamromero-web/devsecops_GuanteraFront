@@ -264,7 +264,7 @@ class KICSReportGenerator:
             elements.append(Paragraph(f"HALLAZGOS {severity} ({len(vulns)})", self.styles['CustomHeading2']))
             elements.append(Spacer(1, 0.2*inch))
             
-            for idx, vuln in enumerate(vulns[:50], 1):
+            for idx, vuln in enumerate(vulns, 1):
                 if idx > 1:
                     elements.append(Spacer(1, 0.2*inch))
                 
@@ -283,10 +283,6 @@ class KICSReportGenerator:
                     elements.append(Spacer(1, 0.05*inch))
                     elements.append(Paragraph("<b>Fragmento de Configuración:</b>", self.styles['Normal']))
                     elements.append(Preformatted(str(value)[:300], self.styles['Normal']))
-            
-            if len(vulns) > 50:
-                elements.append(Spacer(1, 0.2*inch))
-                elements.append(Paragraph(f"<i>... y {len(vulns) - 50} hallazgos más en el reporte JSON</i>", self.styles['Normal']))
         
         return elements
 

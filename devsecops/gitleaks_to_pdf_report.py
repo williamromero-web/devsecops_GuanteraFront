@@ -296,7 +296,7 @@ class GitleaksReportGenerator:
         elements.append(Paragraph(title, self.styles['CustomHeading2']))
         elements.append(Spacer(1, 0.2*inch))
         
-        for idx, secret in enumerate(self.secrets[:50], 1):
+        for idx, secret in enumerate(self.secrets, 1):
             if idx > 1:
                 elements.append(Spacer(1, 0.25*inch))
             
@@ -326,13 +326,7 @@ class GitleaksReportGenerator:
             
             elements.append(Paragraph("<b>Fragmento Expuesto Detectado:</b>", self.styles['Normal']))
             elements.append(Preformatted(wrapped_match, self.styles['SecretBox']))
-        
-        # Paginación final si hay demasiados secretos
-        if self.stats['total'] > 50:
-            elements.append(Spacer(1, 0.3*inch))
-            remaining = self.stats['total'] - 50
-            elements.append(Paragraph(f"<i>... El reporte ha sido truncado por longitud. Existen {remaining} secretos adicionales detallados en el artefacto JSON puro.</i>", self.styles['Normal']))
-        
+             
         return elements
 
     def generate_pdf(self):
