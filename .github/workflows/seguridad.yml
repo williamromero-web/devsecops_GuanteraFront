@@ -60,8 +60,7 @@ jobs:
   sca:
     name: "Etapa 3 · SCA"
     uses: DevSecOpsSM/pipelines-centrales/.github/workflows/sec-sca.yml@main
-    secrets:
-      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}  # Opcional — obtener en nvd.nist.gov (gratis)
+    secrets: inherit
 
   # ──────────────────────────────────────────────────────────────────────
   # ETAPA 4 — Seguridad de contenedores (KICS + Hadolint + Trivy)
