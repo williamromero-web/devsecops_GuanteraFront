@@ -303,8 +303,13 @@ class GitleaksReportGenerator:
             rule = html.escape(str(secret.get('Description', 'Regla Desconocida')))
             file_path = html.escape(str(secret.get('File', 'Archivo desconocido')))
             line = str(secret.get('StartLine', 'N/A'))
-            author = html.escape(str(secret.get('Author', 'Desconocido')))
-            commit = html.escape(str(secret.get('Commit', 'N/A'))[:8])
+            
+            # Corrección para el modo --no-git (strings vacíos)
+            raw_author = secret.get('Author', '').strip()
+            author = html.escape(raw_author) if raw_author else 'No disponible (--no-git)'
+            
+            raw_commit = secret.get('Commit', '').strip()
+            commit = html.escape(raw_commit[:8]) if raw_commit else 'N/A'
             
             # Título del hallazgo
             elements.append(Paragraph(f"<b>{idx}. {rule}</b>", self.styles['Heading3']))

@@ -143,30 +143,60 @@ class SonarQubeReportGenerator:
                 for measure in m_data['component'].get('measures', []):
                     self.metrics[measure['metric']] = measure.get('value', '0')
 
-            # 2. Descargar ALL Issues (Usando paginación para no romper el límite de Sonar)
+            # 2. Descargar ALL Issues (Bugs, Vulnerabilities, Code Smells)
             print("📥 Descargando todos los hallazgos (issues)...")
             self.issues = []
             page_index = 1
-            page_size = 500  # Máximo permitido por SonarQube por página
+            page_size = 500
             
             while True:
-                # Construimos la URL con la página actual
                 issues_ep = f"/api/issues/search?componentKeys={self.project_key}&resolved=false&ps={page_size}&p={page_index}&s=SEVERITY&asc=false"
                 i_data = self._make_api_request(issues_ep)
                 
                 if not i_data or 'issues' not in i_data:
-                    break # Si hay error de red o no hay respuesta, salimos
+                    break
                     
                 batch_issues = i_data['issues']
                 self.issues.extend(batch_issues)
                 
-                # Si SonarQube nos devolvió menos de 500 issues, significa que ya llegamos al final
                 if len(batch_issues) < page_size:
                     break
                     
-                page_index += 1 # Pasamos a la siguiente página
+                page_index += 1
+
+            # ====================================================================
+            # 3. NUEVO: Descargar Security Hotspots (Ruta API diferente)
+            # ====================================================================
+            print("📥 Descargando Security Hotspots...")
+            page_index = 1
+            
+            while True:
+                hotspots_ep = f"/api/hotspots/search?projectKey={self.project_key}&status=TO_REVIEW&ps={page_size}&p={page_index}"
+                h_data = self._make_api_request(hotspots_ep)
                 
-            print(f"✓ Datos recuperados: {len(self.issues)} problemas detectados en total")
+                if not h_data or 'hotspots' not in h_data:
+                    break
+                    
+                batch_hotspots = h_data['hotspots']
+                
+                # Formatear los hotspots para que el PDF los entienda como un "Issue" normal
+                for hotspot in batch_hotspots:
+                    # Los hotspots usan "vulnerabilityProbability" (HIGH, MEDIUM, LOW)
+                    prob = hotspot.get('vulnerabilityProbability', 'UNKNOWN').upper()
+                    self.issues.append({
+                        'severity': prob, 
+                        'type': 'SECURITY_HOTSPOT',
+                        'component': hotspot.get('component', ''),
+                        'message': hotspot.get('message', 'Revisión de seguridad requerida'),
+                        'line': hotspot.get('line', 'N/A')
+                    })
+                    
+                if len(batch_hotspots) < page_size:
+                    break
+                    
+                page_index += 1
+                
+            print(f"✓ Datos recuperados: {len(self.issues)} problemas detectados en total (Issues + Hotspots)")
 
     def create_executive_summary(self):
         """Crear resumen ejecutivo"""
